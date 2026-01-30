@@ -1,0 +1,28 @@
+{
+  "name": "Wishouse",
+  "short_name": "Wishouse",
+  "description": "Planificateur de budget pour votre maison",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "lifestyle", "utilities"],
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "prefer_related_applications": false
+}
