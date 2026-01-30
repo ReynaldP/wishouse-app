@@ -3,7 +3,6 @@ import { useProducts } from '@/hooks/useProducts';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { ProductGrid } from '@/components/products/ProductGrid';
-import { ProductForm } from '@/components/products/ProductForm';
 import { ProductDetail } from '@/components/products/ProductDetail';
 import { ProductFilters } from '@/components/products/ProductFilters';
 import { QuickFilters } from '@/components/products/QuickFilters';
@@ -13,9 +12,7 @@ import type { Product } from '@/types';
 export function Products() {
   const { filters } = useFilterStore();
   const {
-    productFormOpen,
     setProductFormOpen,
-    editingProductId,
     setEditingProductId,
     filtersOpen,
     setFiltersOpen,
@@ -67,11 +64,6 @@ export function Products() {
     setDetailOpen(true);
   };
 
-  const handleCloseForm = () => {
-    setProductFormOpen(false);
-    setEditingProductId(null);
-  };
-
   return (
     <div className="space-y-6 pb-6">
       {/* Compare toolbar */}
@@ -87,13 +79,6 @@ export function Products() {
         onEdit={handleEdit}
         onSelect={handleSelect}
         onAddProduct={() => setProductFormOpen(true)}
-      />
-
-      {/* Product form modal */}
-      <ProductForm
-        open={productFormOpen}
-        onOpenChange={handleCloseForm}
-        editingProductId={editingProductId}
       />
 
       {/* Product detail sheet */}

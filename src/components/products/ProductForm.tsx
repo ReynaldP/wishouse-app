@@ -2,12 +2,11 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -77,7 +76,6 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
   const selectedTagIds = watch('tag_ids') || [];
   const { data: subcategories } = useSubcategories(selectedCategoryId || undefined);
 
-  // Reset form when opening/closing or when product data loads
   useEffect(() => {
     if (open) {
       if (editingProductId && product) {
@@ -103,7 +101,6 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
     }
   }, [open, editingProductId, product, reset]);
 
-  // Reset subcategory when category changes
   useEffect(() => {
     if (!selectedCategoryId) {
       setValue('subcategory_id', null);
@@ -138,281 +135,296 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
   const isLoading = editingProductId && loadingProduct;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[92vh] flex flex-col p-0">
+        {/* Handle bar for mobile */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+        </div>
+
+        <SheetHeader className="px-4 pb-2 border-b">
+          <SheetTitle className="text-lg">
             {editingProductId ? 'Modifier le produit' : 'Nouveau produit'}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex-1 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom du produit *</Label>
-              <Input
-                id="name"
-                placeholder="Ex: Canapé 3 places"
-                {...register('name')}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
-            </div>
-
-            {/* Price */}
-            <div className="space-y-2">
-              <Label htmlFor="price">Prix *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                {...register('price', { valueAsNumber: true })}
-              />
-              {errors.price && (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
-              )}
-            </div>
-
-            {/* Category and Subcategory */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+              {/* Name */}
               <div className="space-y-2">
-                <Label>Catégorie</Label>
-                <Controller
-                  control={control}
-                  name="category_id"
-                  render={({ field }) => (
-                    <Select
-                      value={field.value || '__none__'}
-                      onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Aucune</SelectItem>
-                        {categories?.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: cat.color }}
-                              />
-                              {cat.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                <Label htmlFor="name" className="text-sm font-medium">Nom du produit *</Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Canape 3 places"
+                  className="h-12 text-base"
+                  {...register('name')}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Sous-catégorie</Label>
-                <Controller
-                  control={control}
-                  name="subcategory_id"
-                  render={({ field }) => (
-                    <Select
-                      value={field.value || '__none__'}
-                      onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                      disabled={!selectedCategoryId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Aucune</SelectItem>
-                        {subcategories?.map((sub) => (
-                          <SelectItem key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Status and Priority */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Statut</Label>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(STATUS_CONFIG).map(([value, config]) => (
-                          <SelectItem key={value} value={value}>
-                            {config.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Priorité</Label>
-                <Controller
-                  control={control}
-                  name="priority"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
-                          <SelectItem key={value} value={value}>
-                            {config.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <div className="flex flex-wrap gap-2">
-                {tags?.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant={selectedTagIds.includes(tag.id) ? 'default' : 'outline'}
-                    className={cn(
-                      'cursor-pointer transition-colors',
-                      selectedTagIds.includes(tag.id)
-                        ? ''
-                        : 'hover:bg-muted'
-                    )}
-                    style={
-                      selectedTagIds.includes(tag.id)
-                        ? { backgroundColor: tag.color }
-                        : { borderColor: tag.color, color: tag.color }
-                    }
-                    onClick={() => toggleTag(tag.id)}
-                  >
-                    {tag.name}
-                    {selectedTagIds.includes(tag.id) && (
-                      <X className="ml-1 h-3 w-3" />
-                    )}
-                  </Badge>
-                ))}
-                {(!tags || tags.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    Aucun tag disponible
-                  </p>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
                 )}
               </div>
-            </div>
 
-            {/* Link */}
-            <div className="space-y-2">
-              <Label htmlFor="link">Lien (URL)</Label>
-              <Input
-                id="link"
-                type="url"
-                placeholder="https://..."
-                {...register('link')}
-              />
-              {errors.link && (
-                <p className="text-sm text-destructive">{errors.link.message}</p>
+              {/* Price and Category Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-sm font-medium">Prix *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="h-12 text-base"
+                    {...register('price', { valueAsNumber: true })}
+                  />
+                  {errors.price && (
+                    <p className="text-sm text-destructive">{errors.price.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Categorie</Label>
+                  <Controller
+                    control={control}
+                    name="category_id"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || '__none__'}
+                        onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                      >
+                        <SelectTrigger className="h-12 text-base">
+                          <SelectValue placeholder="Choisir..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Aucune</SelectItem>
+                          {categories?.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: cat.color }}
+                                />
+                                {cat.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Subcategory - only if category selected */}
+              {selectedCategoryId && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sous-categorie</Label>
+                  <Controller
+                    control={control}
+                    name="subcategory_id"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || '__none__'}
+                        onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                      >
+                        <SelectTrigger className="h-12 text-base">
+                          <SelectValue placeholder="Choisir..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Aucune</SelectItem>
+                          {subcategories?.map((sub) => (
+                            <SelectItem key={sub.id} value={sub.id}>
+                              {sub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
               )}
-            </div>
 
-            {/* Image URL */}
-            <div className="space-y-2">
-              <Label htmlFor="image_url">Image (URL)</Label>
-              <Input
-                id="image_url"
-                type="url"
-                placeholder="https://..."
-                {...register('image_url')}
-              />
-              {errors.image_url && (
-                <p className="text-sm text-destructive">{errors.image_url.message}</p>
+              {/* Status and Priority */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Statut</Label>
+                  <Controller
+                    control={control}
+                    name="status"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-12 text-base">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(STATUS_CONFIG).map(([value, config]) => (
+                            <SelectItem key={value} value={value}>
+                              {config.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Priorite</Label>
+                  <Controller
+                    control={control}
+                    name="priority"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-12 text-base">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
+                            <SelectItem key={value} value={value}>
+                              {config.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Tags */}
+              {tags && tags.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Tags</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={selectedTagIds.includes(tag.id) ? 'default' : 'outline'}
+                        className={cn(
+                          'cursor-pointer transition-colors py-1.5 px-3 text-sm',
+                          selectedTagIds.includes(tag.id)
+                            ? ''
+                            : 'hover:bg-muted'
+                        )}
+                        style={
+                          selectedTagIds.includes(tag.id)
+                            ? { backgroundColor: tag.color }
+                            : { borderColor: tag.color, color: tag.color }
+                        }
+                        onClick={() => toggleTag(tag.id)}
+                      >
+                        {tag.name}
+                        {selectedTagIds.includes(tag.id) && (
+                          <X className="ml-1 h-3 w-3" />
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               )}
-            </div>
 
-            {/* Planned Date */}
-            <div className="space-y-2">
-              <Label htmlFor="planned_date">Date prévue</Label>
-              <Input
-                id="planned_date"
-                type="date"
-                {...register('planned_date')}
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Notes, caractéristiques..."
-                rows={3}
-                {...register('description')}
-              />
-            </div>
-
-            {/* Pros and Cons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Link */}
               <div className="space-y-2">
-                <Label htmlFor="pros">Points positifs</Label>
-                <Textarea
-                  id="pros"
-                  placeholder="Avantages..."
-                  rows={2}
-                  {...register('pros')}
+                <Label htmlFor="link" className="text-sm font-medium">Lien (URL)</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  placeholder="https://..."
+                  className="h-12 text-base"
+                  {...register('link')}
                 />
               </div>
 
+              {/* Image URL */}
               <div className="space-y-2">
-                <Label htmlFor="cons">Points négatifs</Label>
-                <Textarea
-                  id="cons"
-                  placeholder="Inconvénients..."
-                  rows={2}
-                  {...register('cons')}
+                <Label htmlFor="image_url" className="text-sm font-medium">Image (URL)</Label>
+                <Input
+                  id="image_url"
+                  type="url"
+                  placeholder="https://..."
+                  className="h-12 text-base"
+                  {...register('image_url')}
                 />
+              </div>
+
+              {/* Planned Date */}
+              <div className="space-y-2">
+                <Label htmlFor="planned_date" className="text-sm font-medium">Date prevue</Label>
+                <Input
+                  id="planned_date"
+                  type="date"
+                  className="h-12 text-base"
+                  {...register('planned_date')}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Notes, caracteristiques..."
+                  rows={3}
+                  className="text-base resize-none"
+                  {...register('description')}
+                />
+              </div>
+
+              {/* Pros and Cons */}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="pros" className="text-sm font-medium">Points positifs</Label>
+                  <Textarea
+                    id="pros"
+                    placeholder="Avantages..."
+                    rows={2}
+                    className="text-base resize-none"
+                    {...register('pros')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cons" className="text-sm font-medium">Points negatifs</Label>
+                  <Textarea
+                    id="cons"
+                    placeholder="Inconvenients..."
+                    rows={2}
+                    className="text-base resize-none"
+                    {...register('cons')}
+                  />
+                </div>
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingProductId ? 'Enregistrer' : 'Créer'}
-              </Button>
-            </DialogFooter>
+            {/* Fixed Footer */}
+            <div className="border-t bg-background p-4 safe-area-inset-bottom">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 h-12 text-base"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 text-base"
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingProductId ? 'Enregistrer' : 'Creer'}
+                </Button>
+              </div>
+            </div>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

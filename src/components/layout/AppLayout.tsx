@@ -2,12 +2,22 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
-import { QuickAddFAB } from '@/components/quick-add';
+import { ProductForm } from '@/components/products/ProductForm';
 import { useUIStore } from '@/stores/useUIStore';
 import { cn } from '@/lib/utils';
 
 export function AppLayout() {
-  const { sidebarOpen: _sidebarOpen } = useUIStore();
+  const {
+    productFormOpen,
+    setProductFormOpen,
+    editingProductId,
+    setEditingProductId,
+  } = useUIStore();
+
+  const handleCloseForm = () => {
+    setProductFormOpen(false);
+    setEditingProductId(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,7 +41,7 @@ export function AppLayout() {
         >
           <Header />
 
-          <div className="container px-4 py-6">
+          <div className="container px-4 py-4 md:py-6">
             <Outlet />
           </div>
         </main>
@@ -40,8 +50,12 @@ export function AppLayout() {
       {/* Mobile bottom navigation */}
       <MobileNav />
 
-      {/* Quick Add FAB */}
-      <QuickAddFAB />
+      {/* Global Product Form - accessible from mobile nav */}
+      <ProductForm
+        open={productFormOpen}
+        onOpenChange={handleCloseForm}
+        editingProductId={editingProductId}
+      />
     </div>
   );
 }

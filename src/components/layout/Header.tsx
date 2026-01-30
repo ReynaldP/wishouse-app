@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Menu, Plus, Search, Bell } from 'lucide-react';
+import { Menu, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUIStore } from '@/stores/useUIStore';
@@ -11,14 +11,14 @@ import { cn } from '@/lib/utils';
 const pageTitles: Record<string, string> = {
   [ROUTES.HOME]: 'Tableau de bord',
   [ROUTES.PRODUCTS]: 'Produits',
-  [ROUTES.CATEGORIES]: 'Catégories',
+  [ROUTES.CATEGORIES]: 'Categories',
   [ROUTES.BUDGET]: 'Budget',
-  [ROUTES.SETTINGS]: 'Paramètres',
+  [ROUTES.SETTINGS]: 'Parametres',
 };
 
 export function Header() {
   const location = useLocation();
-  const { toggleSidebar, setProductFormOpen } = useUIStore();
+  const { toggleSidebar, setProductFormOpen, setFiltersOpen } = useUIStore();
   const { setSearch } = useFilterStore();
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -47,13 +47,29 @@ export function Header() {
 
           <h1
             className={cn(
-              'text-xl font-bold transition-opacity',
-              showSearch && 'opacity-0 md:opacity-100'
+              'text-lg md:text-xl font-bold transition-opacity',
+              showSearch && 'hidden md:block'
             )}
           >
             {title}
           </h1>
         </div>
+
+        {/* Mobile search bar - inline */}
+        {showSearch && isProductsPage && (
+          <div className="flex-1 mx-2 md:hidden">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher..."
+                className="pl-9 h-10"
+                value={searchValue}
+                onChange={(e) => handleSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+        )}
 
         {/* Center - Search (desktop) */}
         {isProductsPage && (
@@ -71,56 +87,44 @@ export function Header() {
         )}
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           {/* Mobile search toggle */}
           {isProductsPage && (
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden h-9 w-9"
               onClick={() => setShowSearch(!showSearch)}
             >
-              <Search className="h-5 w-5" />
+              <Search className={cn("h-5 w-5", showSearch && "text-primary")} />
             </Button>
           )}
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-              2
-            </span>
-          </Button>
+          {/* Mobile filters button */}
+          {isProductsPage && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden h-9 w-9"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <SlidersHorizontal className="h-5 w-5" />
+            </Button>
+          )}
 
-          {/* Add product button */}
+          {/* Add product button - desktop only */}
           {isProductsPage && (
             <Button
               size="sm"
-              className="gap-1"
+              className="hidden md:flex gap-1"
               onClick={() => setProductFormOpen(true)}
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Ajouter</span>
+              <span>Ajouter</span>
             </Button>
           )}
         </div>
       </div>
-
-      {/* Mobile search bar */}
-      {showSearch && isProductsPage && (
-        <div className="md:hidden px-4 pb-3 animate-in slide-in-from-top">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un produit..."
-              className="pl-9"
-              value={searchValue}
-              onChange={(e) => handleSearch(e.target.value)}
-              autoFocus
-            />
-          </div>
-        </div>
-      )}
     </header>
   );
 }
