@@ -7,7 +7,7 @@ import { useUIStore } from '@/stores/useUIStore';
 import { cn } from '@/lib/utils';
 
 export function AppLayout() {
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen: _sidebarOpen } = useUIStore();
 
   return (
     <div className="min-h-screen bg-background">

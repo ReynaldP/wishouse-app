@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCreateCategory, useUpdateCategory, useCategory } from '@/hooks/useCategories';
 import { categorySchema, type CategoryFormData } from '@/utils/validation';
-import { DEFAULT_CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/constants';
+import { DEFAULT_CATEGORY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 interface CategoryFormProps {
@@ -46,7 +46,6 @@ export function CategoryForm({ open, onOpenChange, editingCategoryId }: Category
   const {
     register,
     handleSubmit,
-    control,
     watch,
     reset,
     setValue,

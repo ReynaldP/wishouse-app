@@ -16,7 +16,7 @@ import { useToggleFavorite, useDeleteProduct } from '@/hooks/useProducts';
 import { useUIStore } from '@/stores/useUIStore';
 import { ProductSelector } from '@/components/comparison/ProductSelector';
 import { cn } from '@/lib/utils';
-import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
+import { STATUS_CONFIG } from '@/lib/constants';
 import type { Product } from '@/types';
 
 interface ProductCardProps {
@@ -67,7 +67,6 @@ export const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(fun
 
   const overdue = isOverdue(product.planned_date) && product.status !== 'purchased';
   const statusConfig = STATUS_CONFIG[product.status];
-  const priorityConfig = PRIORITY_CONFIG[product.priority];
 
   return (
     <motion.div

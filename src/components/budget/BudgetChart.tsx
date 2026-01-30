@@ -90,7 +90,7 @@ export const BudgetChart = memo(function BudgetChart({
                 formatter={(value: number) => formatPrice(value, currency)}
               />
               <Legend
-                formatter={(value, entry) => {
+                formatter={(value, _entry) => {
                   const item = chartData.find((d) => d.name === value);
                   return `${value} (${item?.count || 0})`;
                 }}

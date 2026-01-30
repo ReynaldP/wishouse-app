@@ -1,44 +1,225 @@
-import type { Category, Subcategory, Product, Tag, ProductTag, Settings } from './index';
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       categories: {
-        Row: Category;
-        Insert: Omit<Category, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Category, 'id' | 'user_id'>>;
-      };
-      subcategories: {
-        Row: Subcategory;
-        Insert: Omit<Subcategory, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Subcategory, 'id' | 'user_id'>>;
-      };
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          icon: string
+          color: string
+          budget: number
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          icon?: string
+          color?: string
+          budget?: number
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          icon?: string
+          color?: string
+          budget?: number
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
-        Row: Product;
-        Insert: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category' | 'subcategory' | 'tags'>;
-        Update: Partial<Omit<Product, 'id' | 'user_id' | 'category' | 'subcategory' | 'tags'>>;
-      };
-      tags: {
-        Row: Tag;
-        Insert: Omit<Tag, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Tag, 'id' | 'user_id'>>;
-      };
+        Row: {
+          id: string
+          user_id: string
+          category_id: string | null
+          subcategory_id: string | null
+          name: string
+          price: number
+          link: string
+          description: string
+          status: 'pending' | 'to_buy' | 'purchased'
+          priority: 'low' | 'medium' | 'high'
+          image_url: string
+          planned_date: string | null
+          is_favorite: boolean
+          pros: string
+          cons: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          category_id?: string | null
+          subcategory_id?: string | null
+          name: string
+          price?: number
+          link?: string
+          description?: string
+          status?: 'pending' | 'to_buy' | 'purchased'
+          priority?: 'low' | 'medium' | 'high'
+          image_url?: string
+          planned_date?: string | null
+          is_favorite?: boolean
+          pros?: string
+          cons?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          category_id?: string | null
+          subcategory_id?: string | null
+          name?: string
+          price?: number
+          link?: string
+          description?: string
+          status?: 'pending' | 'to_buy' | 'purchased'
+          priority?: 'low' | 'medium' | 'high'
+          image_url?: string
+          planned_date?: string | null
+          is_favorite?: boolean
+          pros?: string
+          cons?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_tags: {
-        Row: ProductTag;
-        Insert: ProductTag;
-        Update: never;
-      };
+        Row: {
+          product_id: string
+          tag_id: string
+        }
+        Insert: {
+          product_id: string
+          tag_id: string
+        }
+        Update: {
+          product_id?: string
+          tag_id?: string
+        }
+        Relationships: []
+      }
       settings: {
-        Row: Settings;
-        Insert: Omit<Settings, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Settings, 'user_id'>>;
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+        Row: {
+          user_id: string
+          total_budget: number
+          currency: string
+          dark_mode: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          total_budget?: number
+          currency?: string
+          dark_mode?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          total_budget?: number
+          currency?: string
+          dark_mode?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subcategories: {
+        Row: {
+          id: string
+          category_id: string
+          user_id: string
+          name: string
+          budget: number
+          order_index: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          user_id: string
+          name: string
+          budget?: number
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          user_id?: string
+          name?: string
+          budget?: number
+          order_index?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          color: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          color?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          color?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
-      status: 'pending' | 'to_buy' | 'purchased';
-      priority: 'low' | 'medium' | 'high';
-    };
-  };
+      priority: 'low' | 'medium' | 'high'
+      status: 'pending' | 'to_buy' | 'purchased'
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }

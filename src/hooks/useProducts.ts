@@ -46,7 +46,8 @@ export function useProducts(filters?: ProductFilters) {
       if (error) throw error;
 
       // Transform product_tags to tags array
-      return (data || []).map(product => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return ((data || []) as any[]).map(product => ({
         ...product,
         tags: product.product_tags
           ?.map((pt: { tag: unknown }) => pt.tag)
@@ -75,9 +76,11 @@ export function useProduct(id: string | null) {
 
       if (error) throw error;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const productData = data as any;
       return {
-        ...data,
-        tags: data.product_tags
+        ...productData,
+        tags: productData.product_tags
           ?.map((pt: { tag: unknown }) => pt.tag)
           .filter(Boolean) || []
       } as Product;

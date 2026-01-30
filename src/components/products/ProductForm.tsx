@@ -28,7 +28,6 @@ import { useCreateProduct, useUpdateProduct, useProduct } from '@/hooks/useProdu
 import { productSchema, type ProductFormData } from '@/utils/validation';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import type { Product } from '@/types';
 
 interface ProductFormProps {
   open: boolean;
