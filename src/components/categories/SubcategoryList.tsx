@@ -30,7 +30,7 @@ export const SubcategoryList = memo(function SubcategoryList({
   const createSubcategory = useCreateSubcategory();
   const updateSubcategory = useUpdateSubcategory();
   const deleteSubcategory = useDeleteSubcategory();
-  const { addToComparison, removeFromComparison, comparisonProductIds, setComparisonViewOpen, setComparisonMode } = useUIStore();
+  // Using useUIStore.setState for direct state manipulation in comparison handlers
 
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
@@ -108,27 +108,24 @@ export const SubcategoryList = memo(function SubcategoryList({
   };
 
   const handleCompareSelected = () => {
-    // Clear previous comparison
-    comparisonProductIds.forEach(id => removeFromComparison(id));
-
-    // Add selected products
-    selectedForCompare.forEach(id => addToComparison(id));
-
-    // Open comparison view
-    setComparisonMode(true);
-    setComparisonViewOpen(true);
+    // Set state directly for synchronous update
+    useUIStore.setState({
+      comparisonProductIds: Array.from(selectedForCompare),
+      comparisonMode: true,
+      comparisonViewOpen: true,
+    });
   };
 
   const handleCompareAll = (subcategoryProducts: Product[]) => {
-    // Clear previous comparison
-    comparisonProductIds.forEach(id => removeFromComparison(id));
+    // Get product IDs (max 4)
+    const productIds = subcategoryProducts.slice(0, 4).map(p => p.id);
 
-    // Add first 4 products
-    subcategoryProducts.slice(0, 4).forEach(p => addToComparison(p.id));
-
-    // Open comparison view
-    setComparisonMode(true);
-    setComparisonViewOpen(true);
+    // Set state directly for synchronous update
+    useUIStore.setState({
+      comparisonProductIds: productIds,
+      comparisonMode: true,
+      comparisonViewOpen: true,
+    });
   };
 
   return (
