@@ -190,3 +190,62 @@ export interface DrilldownState {
   categoryId?: string;
   subcategoryId?: string;
 }
+
+// ============================================
+// WEB CLIPPER TYPES
+// ============================================
+
+export interface ClippedProduct {
+  name: string;
+  price: number | null;
+  image_url: string;
+  link: string;
+  description: string;
+  source: string;
+}
+
+export interface WebClipperResult {
+  success: boolean;
+  data?: ClippedProduct;
+  error?: string;
+}
+
+// ============================================
+// COMPARISON HISTORY TYPES
+// ============================================
+
+export interface ComparisonHistoryItem {
+  id: string;
+  productIds: string[];
+  createdAt: string;
+  winnerId?: string;
+}
+
+// ============================================
+// BUDGET GOALS TYPES
+// ============================================
+
+export interface MonthlyBudgetGoal {
+  id: string;
+  user_id: string;
+  month: string; // Format: YYYY-MM
+  category_id: string | null;
+  amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetForecast {
+  month: string;
+  label: string;
+  projected: number;
+  planned: number;
+  products: Product[];
+}
+
+export interface BudgetAlert {
+  type: 'warning' | 'danger' | 'info';
+  message: string;
+  categoryId?: string;
+  categoryName?: string;
+}

@@ -19,11 +19,13 @@ export function calculateBudgetStats(
 
   const byCategory: CategoryStats[] = categories.map(cat => {
     const categoryProducts = products.filter(p => p.category_id === cat.id);
+    // Only count 'to_buy' and 'purchased' products for expense calculations
+    const expenseProducts = categoryProducts.filter(p => p.status !== 'pending');
     return {
       id: cat.id,
       name: cat.name,
       color: cat.color,
-      total: categoryProducts.reduce((sum, p) => sum + p.price, 0),
+      total: expenseProducts.reduce((sum, p) => sum + p.price, 0),
       count: categoryProducts.length,
       budget: cat.budget
     };
@@ -32,17 +34,21 @@ export function calculateBudgetStats(
   // Add "Sans catégorie" for products without category
   const uncategorizedProducts = products.filter(p => !p.category_id);
   if (uncategorizedProducts.length > 0) {
+    // Only count 'to_buy' and 'purchased' products for expense calculations
+    const uncategorizedExpenseProducts = uncategorizedProducts.filter(p => p.status !== 'pending');
     byCategory.push({
       id: 'uncategorized',
       name: 'Sans catégorie',
       color: '#9ca3af',
-      total: uncategorizedProducts.reduce((sum, p) => sum + p.price, 0),
+      total: uncategorizedExpenseProducts.reduce((sum, p) => sum + p.price, 0),
       count: uncategorizedProducts.length,
       budget: 0
     });
   }
 
-  const totalProductsValue = products.reduce((sum, p) => sum + p.price, 0);
+  // Calculate average price only for expense products (to_buy + purchased)
+  const expenseProducts = products.filter(p => p.status !== 'pending');
+  const totalExpenseValue = expenseProducts.reduce((sum, p) => sum + p.price, 0);
 
   return {
     totalBudget,
@@ -53,7 +59,7 @@ export function calculateBudgetStats(
     remaining,
     percentUsed: Math.min(percentUsed, 100),
     productCount: products.length,
-    averagePrice: products.length > 0 ? totalProductsValue / products.length : 0,
+    averagePrice: expenseProducts.length > 0 ? totalExpenseValue / expenseProducts.length : 0,
     byCategory: byCategory.sort((a, b) => b.total - a.total),
     byStatus: {
       pending: { count: pendingProducts.length, total: pendingTotal },

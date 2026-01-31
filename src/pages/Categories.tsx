@@ -5,6 +5,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { CategoryCard } from '@/components/categories/CategoryCard';
 import { CategoryForm } from '@/components/categories/CategoryForm';
 import { SubcategoryList } from '@/components/categories/SubcategoryList';
+import { CompareView } from '@/components/comparison';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
@@ -179,6 +180,9 @@ export function Categories() {
         isLoading={deleteCategory.isPending}
         onConfirm={confirmDelete}
       />
+
+      {/* Compare view modal (for comparison from subcategories) */}
+      <CompareView />
     </div>
   );
 }

@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
 import { useBudget } from '@/hooks/useBudget';
 import { useSettings } from '@/hooks/useSettings';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -6,11 +8,15 @@ import { RecentProducts } from '@/components/dashboard/RecentProducts';
 import { UpcomingPurchases } from '@/components/dashboard/UpcomingPurchases';
 import { FavoritesList } from '@/components/dashboard/FavoritesList';
 import { BudgetChart } from '@/components/budget/BudgetChart';
+import { BudgetWidget } from '@/components/budget/BudgetWidget';
+import { BudgetAlerts } from '@/components/budget/BudgetAlerts';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { getUpcomingPurchases, getOverdueProducts } from '@/utils/calculations';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { data: products = [], isLoading: loadingProducts } = useProducts();
+  const { data: categories = [] } = useCategories();
   const { data: stats, isLoading: loadingStats } = useBudget();
   const { data: settings } = useSettings();
 
@@ -33,6 +39,28 @@ export function Dashboard() {
         <p className="text-muted-foreground">
           Vue d'ensemble de votre budget maison
         </p>
+      </div>
+
+      {/* Budget Widget + Alerts - Mobile first */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-1">
+          {stats && (
+            <BudgetWidget
+              stats={stats}
+              onNavigate={() => navigate('/budget')}
+            />
+          )}
+        </div>
+        <div className="lg:col-span-2">
+          {stats && (
+            <BudgetAlerts
+              products={products}
+              categories={categories}
+              stats={stats}
+              currency={currency}
+            />
+          )}
+        </div>
       </div>
 
       {/* Stats Grid */}

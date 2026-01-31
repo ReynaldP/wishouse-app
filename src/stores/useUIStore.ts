@@ -47,6 +47,13 @@ interface UIStore {
   lastUsedCategoryId: string | null;
   setLastUsedCategoryId: (id: string | null) => void;
 
+  // Web Clipper
+  webClipperOpen: boolean;
+  setWebClipperOpen: (open: boolean) => void;
+  webClipperUrl: string | null;
+  setWebClipperUrl: (url: string | null) => void;
+  openWebClipper: (url?: string) => void;
+
   // Comparison Mode
   comparisonMode: boolean;
   setComparisonMode: (mode: boolean) => void;
@@ -57,6 +64,11 @@ interface UIStore {
   toggleProductComparison: (productId: string) => void;
   comparisonViewOpen: boolean;
   setComparisonViewOpen: (open: boolean) => void;
+
+  // Comparison History
+  comparisonHistory: Array<{ id: string; productIds: string[]; createdAt: string; winnerId?: string }>;
+  addToComparisonHistory: (productIds: string[], winnerId?: string) => void;
+  clearComparisonHistory: () => void;
 
   // Chart Drilldown
   drilldownCategoryId: string | null;
@@ -109,6 +121,13 @@ export const useUIStore = create<UIStore>()(
       lastUsedCategoryId: null,
       setLastUsedCategoryId: (id) => set({ lastUsedCategoryId: id }),
 
+      // Web Clipper
+      webClipperOpen: false,
+      setWebClipperOpen: (open) => set({ webClipperOpen: open, webClipperUrl: open ? null : null }),
+      webClipperUrl: null,
+      setWebClipperUrl: (url) => set({ webClipperUrl: url }),
+      openWebClipper: (url) => set({ webClipperOpen: true, webClipperUrl: url || null }),
+
       // Comparison Mode
       comparisonMode: false,
       setComparisonMode: (mode) => set({
@@ -136,6 +155,21 @@ export const useUIStore = create<UIStore>()(
       comparisonViewOpen: false,
       setComparisonViewOpen: (open) => set({ comparisonViewOpen: open }),
 
+      // Comparison History
+      comparisonHistory: [],
+      addToComparisonHistory: (productIds, winnerId) => set((state) => {
+        const newItem = {
+          id: Date.now().toString(),
+          productIds,
+          createdAt: new Date().toISOString(),
+          winnerId,
+        };
+        // Keep only the last 10 comparisons
+        const history = [newItem, ...state.comparisonHistory].slice(0, 10);
+        return { comparisonHistory: history };
+      }),
+      clearComparisonHistory: () => set({ comparisonHistory: [] }),
+
       // Chart Drilldown
       drilldownCategoryId: null,
       setDrilldownCategoryId: (id) => set({ drilldownCategoryId: id })
@@ -146,7 +180,8 @@ export const useUIStore = create<UIStore>()(
         viewMode: state.viewMode,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
-        lastUsedCategoryId: state.lastUsedCategoryId
+        lastUsedCategoryId: state.lastUsedCategoryId,
+        comparisonHistory: state.comparisonHistory
       })
     }
   )

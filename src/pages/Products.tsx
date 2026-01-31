@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useProducts } from '@/hooks/useProducts';
+import { useSettings } from '@/hooks/useSettings';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { ProductGrid } from '@/components/products/ProductGrid';
@@ -7,6 +8,8 @@ import { ProductDetail } from '@/components/products/ProductDetail';
 import { ProductFilters } from '@/components/products/ProductFilters';
 import { QuickFilters } from '@/components/products/QuickFilters';
 import { CompareToolbar, CompareView } from '@/components/comparison';
+import { Badge } from '@/components/ui/badge';
+import { formatPrice } from '@/utils/format';
 import type { Product } from '@/types';
 
 export function Products() {
@@ -21,8 +24,25 @@ export function Products() {
   } = useUIStore();
 
   const { data: products = [], isLoading } = useProducts(filters);
+  const { data: settings } = useSettings();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const currency = settings?.currency || 'EUR';
+
+  // Calculate stats for expense products only (to_buy + purchased)
+  const stats = useMemo(() => {
+    const toBuy = products.filter(p => p.status === 'to_buy');
+    const purchased = products.filter(p => p.status === 'purchased');
+    const pending = products.filter(p => p.status === 'pending');
+    const expenseTotal = [...toBuy, ...purchased].reduce((sum, p) => sum + p.price, 0);
+    return {
+      total: products.length,
+      toBuyCount: toBuy.length,
+      purchasedCount: purchased.length,
+      pendingCount: pending.length,
+      expenseTotal
+    };
+  }, [products]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
@@ -66,6 +86,28 @@ export function Products() {
 
   return (
     <div className="space-y-3 sm:space-y-6 pb-6">
+      {/* Header with stats - compact on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">Produits</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {stats.total} produit{stats.total !== 1 ? 's' : ''} • Budget engagé: {formatPrice(stats.expenseTotal, currency)}
+          </p>
+        </div>
+        {/* Quick stats badges - visible on mobile */}
+        <div className="flex gap-1.5 flex-wrap">
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-success/10 text-success border-success/30">
+            {stats.purchasedCount} acheté{stats.purchasedCount !== 1 ? 's' : ''}
+          </Badge>
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-warning/10 text-warning border-warning/30">
+            {stats.toBuyCount} à acheter
+          </Badge>
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-muted">
+            {stats.pendingCount} en attente
+          </Badge>
+        </div>
+      </div>
+
       {/* Compare toolbar */}
       <CompareToolbar />
 

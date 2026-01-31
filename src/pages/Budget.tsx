@@ -9,6 +9,8 @@ import { BudgetStackedBar } from '@/components/budget/BudgetStackedBar';
 import { BudgetTreemap } from '@/components/budget/BudgetTreemap';
 import { StatusDistribution } from '@/components/budget/StatusDistribution';
 import { CategoryBudget } from '@/components/budget/CategoryBudget';
+import { BudgetForecast } from '@/components/budget/BudgetForecast';
+import { BudgetAlerts } from '@/components/budget/BudgetAlerts';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { useFilterStore } from '@/stores/useFilterStore';
 
@@ -40,15 +42,31 @@ export function Budget() {
         </p>
       </div>
 
+      {/* Alerts - Show important notifications first */}
+      <BudgetAlerts
+        products={products}
+        categories={categories}
+        stats={stats}
+        currency={currency}
+      />
+
       {/* Overview */}
       <BudgetOverview stats={stats} />
 
-      {/* Timeline - Full width */}
-      <BudgetTimeline
-        products={products}
-        currency={currency}
-        monthsBack={6}
-      />
+      {/* Forecast + Timeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BudgetForecast
+          products={products}
+          stats={stats}
+          currency={currency}
+          monthsAhead={3}
+        />
+        <BudgetTimeline
+          products={products}
+          currency={currency}
+          monthsBack={6}
+        />
+      </div>
 
       {/* Status Distribution + Treemap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
