@@ -3,7 +3,6 @@ import { Header } from './Header';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 import { ProductForm } from '@/components/products/ProductForm';
-import { QuickAddFAB } from '@/components/quick-add/QuickAddFAB';
 import { useUIStore } from '@/stores/useUIStore';
 import { cn } from '@/lib/utils';
 
@@ -57,9 +56,6 @@ export function AppLayout() {
         onOpenChange={handleCloseForm}
         editingProductId={editingProductId}
       />
-
-      {/* Quick Add FAB with Web Clipper */}
-      <QuickAddFAB />
     </div>
   );
 }
