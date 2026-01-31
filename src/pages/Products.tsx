@@ -65,7 +65,7 @@ export function Products() {
   };
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-3 sm:space-y-6 pb-6">
       {/* Compare toolbar */}
       <CompareToolbar />
 

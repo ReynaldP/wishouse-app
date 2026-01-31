@@ -27,6 +27,7 @@ import { useCreateProduct, useUpdateProduct, useProduct } from '@/hooks/useProdu
 import { productSchema, type ProductFormData } from '@/utils/validation';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { ImageUpload } from './ImageUpload';
 
 interface ProductFormProps {
   open: boolean;
@@ -340,17 +341,17 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
                 />
               </div>
 
-              {/* Image URL */}
-              <div className="space-y-2">
-                <Label htmlFor="image_url" className="text-sm font-medium">Image (URL)</Label>
-                <Input
-                  id="image_url"
-                  type="url"
-                  placeholder="https://..."
-                  className="h-12 text-base"
-                  {...register('image_url')}
-                />
-              </div>
+              {/* Image Upload/URL */}
+              <Controller
+                control={control}
+                name="image_url"
+                render={({ field }) => (
+                  <ImageUpload
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
 
               {/* Planned Date */}
               <div className="space-y-2">

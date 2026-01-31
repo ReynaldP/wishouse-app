@@ -33,23 +33,23 @@ export const CompareToolbar = memo(function CompareToolbar() {
 
   return (
     <div className={cn(
-      'flex items-center gap-2 p-3 rounded-lg transition-all',
+      'flex items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-lg transition-all',
       comparisonMode ? 'bg-primary/10 border border-primary/30' : 'bg-muted/50'
     )}>
       <Button
         variant={comparisonMode ? 'default' : 'outline'}
         size="sm"
         onClick={handleToggleMode}
-        className="gap-2"
+        className="gap-1.5 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
       >
         {comparisonMode ? (
           <>
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Annuler</span>
           </>
         ) : (
           <>
-            <GitCompare className="h-4 w-4" />
+            <GitCompare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Comparer</span>
           </>
         )}
@@ -57,13 +57,9 @@ export const CompareToolbar = memo(function CompareToolbar() {
 
       {comparisonMode && (
         <>
-          <Badge variant="secondary" className="gap-1">
-            {selectedCount} / 4
+          <Badge variant="secondary" className="gap-0.5 text-[10px] sm:text-xs px-1.5">
+            {selectedCount}/4
           </Badge>
-
-          <span className="text-sm text-muted-foreground hidden sm:inline">
-            sélectionnés
-          </span>
 
           <div className="flex-1" />
 
@@ -72,17 +68,19 @@ export const CompareToolbar = memo(function CompareToolbar() {
             size="sm"
             onClick={handleCompare}
             disabled={!canCompare}
-            className="gap-2"
+            className="gap-1.5 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
           >
-            <GitCompare className="h-4 w-4" />
-            Comparer
+            <GitCompare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Comparer</span>
+            <span className="sm:hidden">OK</span>
           </Button>
         </>
       )}
 
       {!comparisonMode && (
-        <span className="text-sm text-muted-foreground">
-          Comparez jusqu'à 4 produits
+        <span className="text-xs sm:text-sm text-muted-foreground">
+          <span className="hidden sm:inline">Comparez jusqu'a 4 produits</span>
+          <span className="sm:hidden">Max 4 produits</span>
         </span>
       )}
     </div>

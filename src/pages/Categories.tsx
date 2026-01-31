@@ -71,18 +71,19 @@ export function Categories() {
   };
 
   return (
-    <div className="space-y-6 pb-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Catégories</h1>
-          <p className="text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6 pb-6">
+      {/* Header - more compact on mobile */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold">Catégories</h1>
+          <p className="text-sm text-muted-foreground">
             {categories.length} catégorie{categories.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setFormOpen(true)}>
+        <Button className="gap-1.5 sm:gap-2 flex-shrink-0 h-9 sm:h-10 px-3 sm:px-4" onClick={() => setFormOpen(true)}>
           <Plus className="h-4 w-4" />
-          Nouvelle catégorie
+          <span className="hidden sm:inline">Nouvelle catégorie</span>
+          <span className="sm:hidden">Ajouter</span>
         </Button>
       </div>
 
@@ -120,34 +121,36 @@ export function Categories() {
 
       {/* Category detail sheet */}
       <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
-        <SheetContent side="bottom" className="h-[80vh]">
+        <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
           {selectedCategory && (
             <>
-              <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+              </div>
 
-              <SheetHeader>
+              <SheetHeader className="px-4 pb-3 border-b">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0"
                     style={{ backgroundColor: `${selectedCategory.color}20` }}
                   >
                     {selectedCategory.icon}
                   </div>
-                  <div>
-                    <SheetTitle>{selectedCategory.name}</SheetTitle>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <SheetTitle className="text-base sm:text-lg truncate">{selectedCategory.name}</SheetTitle>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {getCategoryProducts(selectedCategory.id).length} produits
                     </p>
                   </div>
                 </div>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
-                {/* Budget info */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                {/* Budget info - more compact */}
                 {selectedCategory.budget > 0 && (
-                  <div className="p-4 bg-muted rounded-lg">
+                  <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">Budget alloué</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-lg sm:text-xl font-bold">
                       {formatPrice(selectedCategory.budget, currency)}
                     </p>
                   </div>

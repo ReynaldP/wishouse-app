@@ -56,10 +56,13 @@ export const BudgetTreemap = memo(function BudgetTreemap({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const data = useMemo(() => {
+    // Only include purchased and to_buy products (exclude pending)
+    const filteredProducts = products.filter(p => p.status !== 'pending');
+
     if (selectedCategory) {
       const category = categories.find(c => c.id === selectedCategory);
       if (category) {
-        const categoryProducts = products.filter(p => p.category_id === selectedCategory);
+        const categoryProducts = filteredProducts.filter(p => p.category_id === selectedCategory);
         const subcategoryGroups = new Map<string | null, { name: string; total: number }>();
 
         categoryProducts.forEach(p => {
@@ -81,7 +84,7 @@ export const BudgetTreemap = memo(function BudgetTreemap({
           .sort((a, b) => b.value - a.value);
       }
     }
-    return generateTreemapData(categories, products);
+    return generateTreemapData(categories, filteredProducts, false);
   }, [categories, products, selectedCategory]);
 
   const selectedCategoryName = selectedCategory

@@ -22,12 +22,13 @@ export const QuickFilters = memo(function QuickFilters() {
   const activeFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== '').length;
 
   return (
-    <div className="space-y-3">
-      {/* Quick status filters */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+    <div className="space-y-2 sm:space-y-3">
+      {/* Quick status filters - compact on mobile */}
+      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
         <Button
           variant={!filters.status ? 'default' : 'outline'}
           size="sm"
+          className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
           onClick={() => setStatus(undefined)}
         >
           Tous
@@ -37,38 +38,38 @@ export const QuickFilters = memo(function QuickFilters() {
             key={status}
             variant={filters.status === status ? 'default' : 'outline'}
             size="sm"
-            className="gap-1 flex-shrink-0"
+            className="gap-1 flex-shrink-0 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
             onClick={() => setStatus(filters.status === status ? undefined : status)}
           >
-            <Icon className="h-4 w-4" />
-            {label}
+            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{label}</span>
           </Button>
         ))}
         <Button
           variant={filters.is_favorite ? 'default' : 'outline'}
           size="sm"
-          className="gap-1 flex-shrink-0"
+          className="gap-1 flex-shrink-0 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
           onClick={() => setFavorites(filters.is_favorite ? undefined : true)}
         >
-          <Heart className={cn('h-4 w-4', filters.is_favorite && 'fill-current')} />
-          Favoris
+          <Heart className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4', filters.is_favorite && 'fill-current')} />
+          <span className="hidden sm:inline">Favoris</span>
         </Button>
       </div>
 
-      {/* Category pills */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+      {/* Category pills - compact on mobile */}
+      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
         <Badge
           variant={!filters.category_id ? 'default' : 'outline'}
-          className="cursor-pointer flex-shrink-0"
+          className="cursor-pointer flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
           onClick={() => setCategory(undefined)}
         >
-          Toutes catégories
+          Toutes
         </Badge>
         {categories?.map((cat) => (
           <Badge
             key={cat.id}
             variant={filters.category_id === cat.id ? 'default' : 'outline'}
-            className="cursor-pointer flex-shrink-0 gap-1"
+            className="cursor-pointer flex-shrink-0 gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
             style={
               filters.category_id === cat.id
                 ? { backgroundColor: cat.color }
@@ -77,7 +78,7 @@ export const QuickFilters = memo(function QuickFilters() {
             onClick={() => setCategory(filters.category_id === cat.id ? undefined : cat.id)}
           >
             <span
-              className="w-2 h-2 rounded-full"
+              className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
               style={{ backgroundColor: filters.category_id === cat.id ? 'white' : cat.color }}
             />
             {cat.name}
@@ -85,18 +86,19 @@ export const QuickFilters = memo(function QuickFilters() {
         ))}
       </div>
 
-      {/* Advanced filters button and active filters */}
-      <div className="flex items-center justify-between">
+      {/* Advanced filters button and active filters - compact */}
+      <div className="flex items-center justify-between gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-1.5 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
           onClick={() => setFiltersOpen(true)}
         >
-          <Filter className="h-4 w-4" />
-          Filtres avancés
+          <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Filtres avances</span>
+          <span className="sm:hidden">Filtres</span>
           {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-1">
+            <Badge variant="secondary" className="ml-0.5 text-[10px] px-1">
               {activeFiltersCount}
             </Badge>
           )}
@@ -106,11 +108,11 @@ export const QuickFilters = memo(function QuickFilters() {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1 text-muted-foreground"
+            className="gap-1 text-muted-foreground h-7 sm:h-8 px-2 text-xs sm:text-sm"
             onClick={resetFilters}
           >
-            <X className="h-4 w-4" />
-            Réinitialiser
+            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Reinitialiser</span>
           </Button>
         )}
       </div>

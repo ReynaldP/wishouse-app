@@ -60,11 +60,17 @@ export function generateTimelineData(
 
 export function generateTreemapData(
   categories: Category[],
-  products: Product[]
+  products: Product[],
+  excludePending: boolean = true
 ): TreemapNode[] {
+  // Filter out pending products for expense charts (only count purchased or to_buy)
+  const filteredProducts = excludePending
+    ? products.filter(p => p.status !== 'pending')
+    : products;
+
   return categories
     .map(category => {
-      const categoryProducts = products.filter(p => p.category_id === category.id);
+      const categoryProducts = filteredProducts.filter(p => p.category_id === category.id);
       const total = categoryProducts.reduce((sum, p) => sum + p.price, 0);
 
       return {
@@ -80,11 +86,17 @@ export function generateTreemapData(
 
 export function generateTreemapWithSubcategories(
   categories: Category[],
-  products: Product[]
+  products: Product[],
+  excludePending: boolean = true
 ): TreemapNode[] {
+  // Filter out pending products for expense charts (only count purchased or to_buy)
+  const filteredProducts = excludePending
+    ? products.filter(p => p.status !== 'pending')
+    : products;
+
   return categories
     .map(category => {
-      const categoryProducts = products.filter(p => p.category_id === category.id);
+      const categoryProducts = filteredProducts.filter(p => p.category_id === category.id);
 
       // Group by subcategory
       const subcategoryGroups = new Map<string | null, Product[]>();
