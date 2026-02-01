@@ -47,12 +47,21 @@ export function useProducts(filters?: ProductFilters) {
 
       // Transform product_tags to tags array
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ((data || []) as any[]).map(product => ({
+      let products = ((data || []) as any[]).map(product => ({
         ...product,
         tags: product.product_tags
           ?.map((pt: { tag: unknown }) => pt.tag)
           .filter(Boolean) || []
       })) as Product[];
+
+      // Filter by tag_id (client-side filtering since tags are in a join table)
+      if (filters?.tag_id) {
+        products = products.filter(product =>
+          product.tags?.some(tag => tag.id === filters.tag_id)
+        );
+      }
+
+      return products;
     }
   });
 }
