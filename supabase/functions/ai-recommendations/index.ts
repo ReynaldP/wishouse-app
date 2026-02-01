@@ -40,8 +40,8 @@ serve(async (req) => {
 
     if (!productName) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Product name is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Product name is required', recommendations: [] }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -108,7 +108,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : 'An error occurred',
         recommendations: []
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
