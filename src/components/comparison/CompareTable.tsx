@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Package, Calendar, Star, AlertTriangle, XCircle, ShoppingCart, Trophy } from 'lucide-react';
+import { Package, Calendar, Star, AlertTriangle, XCircle, ShoppingCart, Trophy, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice, formatDate, isOverdue } from '@/utils/format';
@@ -202,6 +202,39 @@ export const CompareTable = memo(function CompareTable({ products, currency }: C
                   </div>
                 ) : (
                   <span className="text-muted-foreground">-</span>
+                )}
+              </td>
+            ))}
+          </tr>
+
+          {/* Tags */}
+          <tr className="border-b">
+            <td className="p-3 text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                Tags
+              </div>
+            </td>
+            {products.map(product => (
+              <td key={product.id} className="p-3">
+                {product.tags && product.tags.length > 0 ? (
+                  <div className="flex flex-wrap justify-center gap-1">
+                    {product.tags.map(tag => (
+                      <Badge
+                        key={tag.id}
+                        variant="outline"
+                        className="text-xs px-2 py-0.5"
+                        style={{
+                          borderColor: tag.color,
+                          color: tag.color,
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-center block">-</span>
                 )}
               </td>
             ))}

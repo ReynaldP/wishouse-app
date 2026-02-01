@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, Heart, Clock, ShoppingCart, Check } from 'lucide-react';
+import { Filter, X, Heart, Clock, ShoppingCart, Check, Tag } from 'lucide-react';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { useCategories } from '@/hooks/useCategories';
+import { useTags } from '@/hooks/useTags';
 import { cn } from '@/lib/utils';
 import type { Status } from '@/types';
 
@@ -16,7 +17,8 @@ const statusButtons: { status: Status; icon: React.ElementType; label: string }[
 
 export const QuickFilters = memo(function QuickFilters() {
   const { data: categories } = useCategories();
-  const { filters, setStatus, setCategory, setFavorites, resetFilters, hasActiveFilters } = useFilterStore();
+  const { data: tags } = useTags();
+  const { filters, setStatus, setCategory, setTag, setFavorites, resetFilters, hasActiveFilters } = useFilterStore();
   const { setFiltersOpen } = useUIStore();
 
   const activeFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== '').length;
@@ -85,6 +87,35 @@ export const QuickFilters = memo(function QuickFilters() {
           </Badge>
         ))}
       </div>
+
+      {/* Tag pills */}
+      {tags && tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
+          <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+          <Badge
+            variant={!filters.tag_id ? 'default' : 'outline'}
+            className="cursor-pointer text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
+            onClick={() => setTag(undefined)}
+          >
+            Tous
+          </Badge>
+          {tags.map((tag) => (
+            <Badge
+              key={tag.id}
+              variant={filters.tag_id === tag.id ? 'default' : 'outline'}
+              className="cursor-pointer text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
+              style={
+                filters.tag_id === tag.id
+                  ? { backgroundColor: tag.color }
+                  : { borderColor: tag.color, color: tag.color }
+              }
+              onClick={() => setTag(filters.tag_id === tag.id ? undefined : tag.id)}
+            >
+              {tag.name}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Advanced filters button and active filters - compact */}
       <div className="flex items-center justify-between gap-2">
