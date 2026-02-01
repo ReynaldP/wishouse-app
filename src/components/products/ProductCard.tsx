@@ -134,18 +134,18 @@ export const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(fun
           )}
         </div>
 
-        {/* Content - more compact on mobile */}
-        <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3 overflow-hidden">
+        {/* Content */}
+        <div className="p-4 space-y-3">
           {/* Category */}
           {product.category && (
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span
-                className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: product.category.color }}
               />
               <span className="truncate">{product.category.name}</span>
               {product.subcategory && (
-                <span className="text-[10px] sm:text-xs truncate hidden sm:inline">
+                <span className="text-xs truncate">
                   • {product.subcategory.name}
                 </span>
               )}
@@ -153,18 +153,18 @@ export const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(fun
           )}
 
           {/* Name */}
-          <h3 className="font-semibold line-clamp-2 leading-tight text-sm sm:text-base">
+          <h3 className="font-semibold line-clamp-2 leading-tight text-base">
             {product.name}
           </h3>
 
-          {/* Tags - hidden on mobile, show only 2 on small screens */}
+          {/* Tags */}
           {product.tags && product.tags.length > 0 && (
-            <div className="hidden sm:flex flex-wrap gap-1">
-              {product.tags.slice(0, 2).map((tag) => (
+            <div className="flex flex-wrap gap-1">
+              {product.tags.slice(0, 3).map((tag) => (
                 <Badge
                   key={tag.id}
                   variant="outline"
-                  className="text-[10px] px-1.5 py-0"
+                  className="text-xs px-2 py-0.5"
                   style={{
                     borderColor: tag.color,
                     color: tag.color,
@@ -173,73 +173,68 @@ export const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(fun
                   {tag.name}
                 </Badge>
               ))}
-              {product.tags.length > 2 && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  +{product.tags.length - 2}
+              {product.tags.length > 3 && (
+                <Badge variant="outline" className="text-xs px-2 py-0.5">
+                  +{product.tags.length - 3}
                 </Badge>
               )}
             </div>
           )}
 
-          {/* Price and date row - combined on mobile */}
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <div className="text-base sm:text-2xl font-bold text-primary truncate">
+          {/* Price and date row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xl sm:text-2xl font-bold text-primary">
               {formatPrice(product.price)}
             </div>
 
-            {/* Planned date - compact on mobile */}
+            {/* Planned date */}
             {product.planned_date && (
               <div
                 className={cn(
-                  'flex items-center gap-0.5 text-[10px] sm:text-sm flex-shrink-0',
+                  'flex items-center gap-1 text-sm',
                   overdue
                     ? 'text-destructive font-medium'
                     : 'text-muted-foreground'
                 )}
               >
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{formatDate(product.planned_date)}</span>
-                <span className="sm:hidden">{new Date(product.planned_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span>
+                <Calendar className="w-4 h-4" />
+                <span>{formatDate(product.planned_date)}</span>
               </div>
             )}
           </div>
 
-          {/* Status and actions - more compact */}
-          <div className="flex items-center justify-between gap-1 pt-2 border-t min-w-0">
-            <Badge className={cn(statusConfig.bgColor, statusConfig.color, "text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 flex-shrink-0")}>
-              <span className="hidden sm:inline">{statusConfig.label}</span>
-              <span className="sm:hidden">
-                {product.status === 'purchased' ? '✓' :
-                 product.status === 'to_buy' ? '🛒' : '⏳'}
-              </span>
+          {/* Status and actions */}
+          <div className="flex items-center justify-between gap-2 pt-2 border-t">
+            <Badge className={cn(statusConfig.bgColor, statusConfig.color, "text-xs px-2 py-0.5")}>
+              {statusConfig.label}
             </Badge>
 
-            <div className="flex gap-0 flex-shrink-0">
+            <div className="flex gap-0.5">
               {product.link && (
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 sm:h-8 sm:w-8"
+                  className="h-8 w-8"
                   onClick={handleOpenLink}
                 >
-                  <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
               )}
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-6 w-6 sm:h-8 sm:w-8"
+                className="h-8 w-8"
                 onClick={handleEdit}
               >
-                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-6 w-6 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
+                className="h-8 w-8 text-destructive hover:text-destructive"
                 onClick={handleDelete}
               >
-                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
