@@ -85,7 +85,7 @@ export function Products() {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-6 pb-6">
+    <div className="space-y-3 sm:space-y-6 pb-6 overflow-x-hidden">
       {/* Header with stats - compact on mobile */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>

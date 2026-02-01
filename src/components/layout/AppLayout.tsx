@@ -41,7 +41,7 @@ export function AppLayout() {
         >
           <Header />
 
-          <div className="container px-4 py-4 md:py-6">
+          <div className="container px-4 py-4 md:py-6 overflow-x-hidden">
             <Outlet />
           </div>
         </main>
