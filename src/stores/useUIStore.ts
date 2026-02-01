@@ -54,6 +54,32 @@ interface UIStore {
   setWebClipperUrl: (url: string | null) => void;
   openWebClipper: (url?: string) => void;
 
+  // Pre-filled product data from web clipper
+  prefillProductData: {
+    name: string;
+    price: number;
+    link: string;
+    description: string;
+    image_url: string;
+    source?: string;
+  } | null;
+  setPrefillProductData: (data: {
+    name: string;
+    price: number;
+    link: string;
+    description: string;
+    image_url: string;
+    source?: string;
+  } | null) => void;
+  openProductFormWithWebData: (data: {
+    name: string;
+    price: number;
+    link: string;
+    description: string;
+    image_url: string;
+    source?: string;
+  }) => void;
+
   // Comparison Mode
   comparisonMode: boolean;
   setComparisonMode: (mode: boolean) => void;
@@ -127,6 +153,16 @@ export const useUIStore = create<UIStore>()(
       webClipperUrl: null,
       setWebClipperUrl: (url) => set({ webClipperUrl: url }),
       openWebClipper: (url) => set({ webClipperOpen: true, webClipperUrl: url || null }),
+
+      // Pre-filled product data from web clipper
+      prefillProductData: null,
+      setPrefillProductData: (data) => set({ prefillProductData: data }),
+      openProductFormWithWebData: (data) => set({
+        webClipperOpen: false,
+        prefillProductData: data,
+        productFormOpen: true,
+        editingProductId: null,
+      }),
 
       // Comparison Mode
       comparisonMode: false,

@@ -19,11 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Globe } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { useSubcategories } from '@/hooks/useSubcategories';
 import { useTags } from '@/hooks/useTags';
 import { useCreateProduct, useUpdateProduct, useProduct } from '@/hooks/useProducts';
+import { useUIStore } from '@/stores/useUIStore';
 import { productSchema, type ProductFormData } from '@/utils/validation';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -56,6 +57,7 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
   const { data: categories } = useCategories();
   const { data: tags } = useTags();
   const { data: product, isLoading: loadingProduct } = useProduct(editingProductId || null);
+  const { prefillProductData, setPrefillProductData, lastUsedCategoryId } = useUIStore();
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -96,11 +98,29 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
           cons: product.cons || '',
           tag_ids: product.tags?.map(t => t.id) || [],
         });
+      } else if (prefillProductData) {
+        // Pre-fill with web clipper data
+        reset({
+          ...defaultValues,
+          name: prefillProductData.name,
+          price: prefillProductData.price,
+          link: prefillProductData.link,
+          description: prefillProductData.description,
+          image_url: prefillProductData.image_url,
+          category_id: lastUsedCategoryId,
+        });
       } else {
         reset(defaultValues);
       }
     }
-  }, [open, editingProductId, product, reset]);
+  }, [open, editingProductId, product, prefillProductData, lastUsedCategoryId, reset]);
+
+  // Clear prefill data when modal closes
+  useEffect(() => {
+    if (!open && prefillProductData) {
+      setPrefillProductData(null);
+    }
+  }, [open, prefillProductData, setPrefillProductData]);
 
   useEffect(() => {
     if (!selectedCategoryId) {
@@ -144,9 +164,17 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
         </div>
 
         <SheetHeader className="px-4 pb-2 border-b">
-          <SheetTitle className="text-lg">
-            {editingProductId ? 'Modifier le produit' : 'Nouveau produit'}
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-lg">
+              {editingProductId ? 'Modifier le produit' : 'Nouveau produit'}
+            </SheetTitle>
+            {prefillProductData?.source && !editingProductId && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <Globe className="h-3 w-3" />
+                {prefillProductData.source}
+              </Badge>
+            )}
+          </div>
         </SheetHeader>
 
         {isLoading ? (

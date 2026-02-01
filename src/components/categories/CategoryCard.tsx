@@ -47,29 +47,29 @@ export const CategoryCard = memo(function CategoryCard({
       className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-[0.98]"
       onClick={() => onClick(category)}
     >
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start gap-2 sm:gap-3">
+      <CardContent className="p-2.5 sm:p-4 overflow-hidden">
+        <div className="flex items-start gap-2 sm:gap-3 min-w-0">
           {/* Color indicator - smaller on mobile */}
           <div
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0"
+            className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-2xl flex-shrink-0"
             style={{ backgroundColor: `${category.color}20` }}
           >
             {category.icon}
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-semibold truncate text-sm sm:text-base">{category.name}</h3>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="font-semibold truncate text-sm sm:text-base flex-1 min-w-0">{category.name}</h3>
               <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </div>
 
             {/* Stats row - more compact on mobile */}
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
-              <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0">
+            <div className="flex items-center gap-1 sm:gap-2 mb-2">
+              <Badge variant="secondary" className="text-[10px] sm:text-xs px-1 sm:px-1.5 py-0 flex-shrink-0">
                 {categoryProducts.length}
               </Badge>
-              <span className="text-xs sm:text-sm font-medium">
+              <span className="text-[11px] sm:text-sm font-medium truncate">
                 {formatPrice(totalValue, currency)}
               </span>
             </div>
@@ -86,17 +86,17 @@ export const CategoryCard = memo(function CategoryCard({
           </div>
 
           {/* Actions - inline on mobile for space saving */}
-          <div className="flex flex-col gap-0.5 sm:hidden flex-shrink-0">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleEdit}>
-              <Edit className="h-3.5 w-3.5" />
+          <div className="flex flex-col gap-0 sm:hidden flex-shrink-0">
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleEdit}>
+              <Edit className="h-3 w-3" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-destructive hover:text-destructive"
+              className="h-6 w-6 text-destructive hover:text-destructive"
               onClick={handleDelete}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-3 w-3" />
             </Button>
           </div>
         </div>

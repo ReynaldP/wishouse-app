@@ -1,7 +1,4 @@
 import { memo, useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Sheet,
   SheetContent,
@@ -11,7 +8,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -20,29 +16,13 @@ import {
   Globe,
   Image as ImageIcon,
   AlertCircle,
-  Check,
   Clipboard,
+  ArrowRight,
   ExternalLink,
 } from 'lucide-react';
-import { StatusButtons } from '@/components/quick-add/StatusButtons';
-import { CategoryIconPicker } from '@/components/quick-add/CategoryIconPicker';
-import { useCategories } from '@/hooks/useCategories';
-import { useCreateProduct } from '@/hooks/useProducts';
 import { useUIStore } from '@/stores/useUIStore';
 import { fetchAndParseProduct, isValidUrl, extractUrlFromText } from '@/utils/webClipper';
-import type { Status, ClippedProduct } from '@/types';
-
-const clipperSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(200),
-  price: z.number().min(0, 'Le prix doit être positif'),
-  category_id: z.string().nullable(),
-  status: z.enum(['pending', 'to_buy', 'purchased']),
-  link: z.string().url().optional().or(z.literal('')),
-  description: z.string().optional(),
-  image_url: z.string().optional(),
-});
-
-type ClipperFormData = z.infer<typeof clipperSchema>;
+import type { ClippedProduct } from '@/types';
 
 interface WebClipperModalProps {
   open: boolean;
@@ -55,39 +35,13 @@ export const WebClipperModal = memo(function WebClipperModal({
   onOpenChange,
   initialUrl,
 }: WebClipperModalProps) {
-  const { data: categories = [] } = useCategories();
-  const createProduct = useCreateProduct();
-  const { lastUsedCategoryId, setLastUsedCategoryId } = useUIStore();
+  const { openProductFormWithWebData, setProductFormOpen } = useUIStore();
 
   const [urlInput, setUrlInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clippedData, setClippedData] = useState<ClippedProduct | null>(null);
-  const [step, setStep] = useState<'url' | 'form'>('url');
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ClipperFormData>({
-    resolver: zodResolver(clipperSchema),
-    defaultValues: {
-      name: '',
-      price: 0,
-      category_id: lastUsedCategoryId,
-      status: 'pending',
-      link: '',
-      description: '',
-      image_url: '',
-    },
-  });
-
-  const selectedCategoryId = watch('category_id');
-  const selectedStatus = watch('status');
-  const imageUrl = watch('image_url');
+  const [step, setStep] = useState<'url' | 'preview'>('url');
 
   // Reset when modal opens
   useEffect(() => {
@@ -96,22 +50,13 @@ export const WebClipperModal = memo(function WebClipperModal({
       setUrlInput(initialUrl || '');
       setClippedData(null);
       setError(null);
-      reset({
-        name: '',
-        price: 0,
-        category_id: lastUsedCategoryId,
-        status: 'pending',
-        link: '',
-        description: '',
-        image_url: '',
-      });
 
       // Auto-fetch if initial URL provided
       if (initialUrl && isValidUrl(initialUrl)) {
         handleFetchUrl(initialUrl);
       }
     }
-  }, [open, initialUrl, lastUsedCategoryId, reset]);
+  }, [open, initialUrl]);
 
   // Handle paste from clipboard
   const handlePaste = useCallback(async () => {
@@ -146,52 +91,35 @@ export const WebClipperModal = memo(function WebClipperModal({
 
     if (result.success && result.data) {
       setClippedData(result.data);
-
-      // Pre-fill form
-      setValue('name', result.data.name);
-      setValue('price', result.data.price || 0);
-      setValue('link', result.data.link);
-      setValue('description', result.data.description);
-      setValue('image_url', result.data.image_url);
-
-      setStep('form');
+      setStep('preview');
     } else {
       setError(result.error || 'Erreur lors de la récupération des données');
     }
   };
 
-  // Submit form
-  const onSubmit = async (data: ClipperFormData) => {
-    try {
-      await createProduct.mutateAsync({
-        name: data.name,
-        price: data.price,
-        category_id: data.category_id,
-        subcategory_id: null,
-        status: data.status,
-        priority: 'medium',
-        link: data.link || '',
-        description: data.description || '',
-        image_url: data.image_url || '',
-        planned_date: null,
-        is_favorite: false,
-        pros: '',
-        cons: '',
+  // Open full product form with clipped data
+  const handleContinueToForm = () => {
+    if (clippedData) {
+      openProductFormWithWebData({
+        name: clippedData.name,
+        price: clippedData.price || 0,
+        link: clippedData.link,
+        description: clippedData.description,
+        image_url: clippedData.image_url,
+        source: clippedData.source,
       });
-
-      if (data.category_id) {
-        setLastUsedCategoryId(data.category_id);
-      }
-
-      onOpenChange(false);
-    } catch {
-      // Error handled by mutation
     }
+  };
+
+  // Go directly to manual entry (empty form)
+  const handleManualEntry = () => {
+    onOpenChange(false);
+    setProductFormOpen(true);
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-3xl">
+      <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto rounded-t-3xl">
         <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
 
         <SheetHeader className="mb-4">
@@ -202,7 +130,7 @@ export const WebClipperModal = memo(function WebClipperModal({
         </SheetHeader>
 
         {step === 'url' && (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-4">
             {/* URL Input */}
             <div className="space-y-2">
               <Label htmlFor="url">URL du produit</Label>
@@ -291,7 +219,7 @@ export const WebClipperModal = memo(function WebClipperModal({
             <div className="text-center pt-4 border-t">
               <Button
                 variant="link"
-                onClick={() => setStep('form')}
+                onClick={handleManualEntry}
                 className="text-muted-foreground"
               >
                 Ou saisir manuellement
@@ -300,35 +228,33 @@ export const WebClipperModal = memo(function WebClipperModal({
           </div>
         )}
 
-        {step === 'form' && (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {step === 'preview' && clippedData && (
+          <div className="space-y-4 pb-4">
             {/* Source badge */}
-            {clippedData?.source && (
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="gap-1">
-                  <Globe className="h-3 w-3" />
-                  {clippedData.source}
-                </Badge>
-                {clippedData.link && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(clippedData.link, '_blank')}
-                    className="gap-1 text-xs"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Voir l'original
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center justify-between">
+              <Badge variant="outline" className="gap-1">
+                <Globe className="h-3 w-3" />
+                {clippedData.source}
+              </Badge>
+              {clippedData.link && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(clippedData.link, '_blank')}
+                  className="gap-1 text-xs"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Voir l'original
+                </Button>
+              )}
+            </div>
 
             {/* Image preview */}
-            {imageUrl && (
+            {clippedData.image_url ? (
               <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                 <img
-                  src={imageUrl}
+                  src={clippedData.image_url}
                   alt="Aperçu"
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -336,71 +262,41 @@ export const WebClipperModal = memo(function WebClipperModal({
                   }}
                 />
               </div>
-            )}
-
-            {!imageUrl && (
+            ) : (
               <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
                 <ImageIcon className="h-12 w-12 text-muted-foreground" />
               </div>
             )}
 
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="clip-name">Nom du produit</Label>
-              <Input
-                id="clip-name"
-                placeholder="Ex: Canapé 3 places"
-                {...register('name')}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+            {/* Product info preview */}
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Nom du produit</p>
+                <p className="font-medium line-clamp-2">{clippedData.name || 'Non détecté'}</p>
+              </div>
+
+              <div className="flex gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Prix</p>
+                  <p className="text-xl font-bold text-primary">
+                    {clippedData.price ? `${clippedData.price.toFixed(2)} €` : 'Non détecté'}
+                  </p>
+                </div>
+              </div>
+
+              {clippedData.description && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Description</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{clippedData.description}</p>
+                </div>
               )}
             </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <Label htmlFor="clip-price">Prix (€)</Label>
-              <Input
-                id="clip-price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0"
-                {...register('price', { valueAsNumber: true })}
-              />
-              {errors.price && (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="clip-description">Description (optionnel)</Label>
-              <Textarea
-                id="clip-description"
-                placeholder="Description du produit..."
-                rows={2}
-                {...register('description')}
-              />
-            </div>
-
-            {/* Category */}
-            <div className="space-y-2">
-              <Label>Catégorie</Label>
-              <CategoryIconPicker
-                categories={categories}
-                selectedId={selectedCategoryId}
-                onSelect={(id) => setValue('category_id', id)}
-              />
-            </div>
-
-            {/* Status */}
-            <div className="space-y-2">
-              <Label>Statut</Label>
-              <StatusButtons
-                value={selectedStatus}
-                onChange={(status: Status) => setValue('status', status)}
-              />
+            {/* Info message */}
+            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Vous allez pouvoir compléter les informations (catégorie, priorité, tags, etc.) dans le formulaire complet.
+              </p>
             </div>
 
             {/* Actions */}
@@ -414,19 +310,15 @@ export const WebClipperModal = memo(function WebClipperModal({
                 Retour
               </Button>
               <Button
-                type="submit"
+                type="button"
                 className="flex-1"
-                disabled={isSubmitting || createProduct.isPending}
+                onClick={handleContinueToForm}
               >
-                {(isSubmitting || createProduct.isPending) ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="mr-2 h-4 w-4" />
-                )}
-                Ajouter
+                Continuer
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          </form>
+          </div>
         )}
       </SheetContent>
     </Sheet>
