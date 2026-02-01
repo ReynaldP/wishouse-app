@@ -23,8 +23,8 @@ export const QuickFilters = memo(function QuickFilters() {
 
   return (
     <div className="space-y-2 sm:space-y-3">
-      {/* Quick status filters - compact on mobile */}
-      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
+      {/* Quick status filters */}
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         <Button
           variant={!filters.status ? 'default' : 'outline'}
           size="sm"
@@ -38,7 +38,7 @@ export const QuickFilters = memo(function QuickFilters() {
             key={status}
             variant={filters.status === status ? 'default' : 'outline'}
             size="sm"
-            className="gap-1 flex-shrink-0 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
+            className="gap-1 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
             onClick={() => setStatus(filters.status === status ? undefined : status)}
           >
             <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -48,7 +48,7 @@ export const QuickFilters = memo(function QuickFilters() {
         <Button
           variant={filters.is_favorite ? 'default' : 'outline'}
           size="sm"
-          className="gap-1 flex-shrink-0 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
+          className="gap-1 h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
           onClick={() => setFavorites(filters.is_favorite ? undefined : true)}
         >
           <Heart className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4', filters.is_favorite && 'fill-current')} />
@@ -56,11 +56,11 @@ export const QuickFilters = memo(function QuickFilters() {
         </Button>
       </div>
 
-      {/* Category pills - compact on mobile */}
-      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
+      {/* Category pills */}
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         <Badge
           variant={!filters.category_id ? 'default' : 'outline'}
-          className="cursor-pointer flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
+          className="cursor-pointer text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
           onClick={() => setCategory(undefined)}
         >
           Toutes
@@ -69,7 +69,7 @@ export const QuickFilters = memo(function QuickFilters() {
           <Badge
             key={cat.id}
             variant={filters.category_id === cat.id ? 'default' : 'outline'}
-            className="cursor-pointer flex-shrink-0 gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
+            className="cursor-pointer gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
             style={
               filters.category_id === cat.id
                 ? { backgroundColor: cat.color }
