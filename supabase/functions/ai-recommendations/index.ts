@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.20.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,24 +45,39 @@ serve(async (req) => {
       );
     }
 
-    const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-
     // Build the prompt
     const prompt = buildPrompt(productName, productDescription, category, maxPrice, currentPrice);
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 2048,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]
+    // Call Claude API directly via fetch
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 2048,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Anthropic API error:', errorText);
+      throw new Error(`Anthropic API error: ${response.status}`);
+    }
+
+    const message = await response.json();
+
     // Extract the text content
-    const textContent = message.content.find(c => c.type === 'text');
+    const textContent = message.content?.find((c: { type: string }) => c.type === 'text');
     if (!textContent || textContent.type !== 'text') {
       throw new Error('No text response from AI');
     }
