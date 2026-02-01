@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 import type { Product, Recommendation, RecommendationResponse } from '@/types';
 import { toast } from '@/hooks/useToast';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 interface FetchRecommendationsParams {
   productName: string;
   productDescription?: string;
@@ -18,14 +21,21 @@ async function fetchRecommendations(
   params: FetchRecommendationsParams
 ): Promise<RecommendationResponse> {
   try {
-    const { data, error } = await supabase.functions.invoke('ai-recommendations', {
-      body: params
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-recommendations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify(params)
     });
 
-    if (error) {
-      throw new Error(error.message || 'Failed to fetch recommendations');
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
 
+    const data = await response.json();
     return data as RecommendationResponse;
   } catch (error) {
     console.error('Error fetching recommendations:', error);
