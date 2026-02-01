@@ -5,6 +5,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +24,8 @@ import {
   ThumbsDown,
   ShoppingCart,
   Check,
+  Sparkles,
+  Trophy,
 } from 'lucide-react';
 import { PriceHistoryPanel } from './PriceHistoryPanel';
 import { PriceAlertBadge } from './PriceAlertBadge';
@@ -30,6 +37,7 @@ import {
   useUpdateProductStatus,
 } from '@/hooks/useProducts';
 import { useSettings } from '@/hooks/useSettings';
+import { useProductAIComparison } from '@/hooks/useAIComparison';
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import type { Product, Status } from '@/types';
@@ -52,6 +60,7 @@ export function ProductDetail({
   const deleteProduct = useDeleteProduct();
   const updateStatus = useUpdateProductStatus();
   const { data: settings } = useSettings();
+  const { data: aiComparison } = useProductAIComparison(product?.id);
 
   if (!product) return null;
 
@@ -133,6 +142,61 @@ export function ProductDetail({
             {formatPrice(product.price, currency)}
           </div>
           <PriceAlertBadge product={product} showDetails />
+
+          {/* AI Comparison Badge */}
+          {aiComparison && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Note IA: {aiComparison.adjustedScore}/100</span>
+                  {aiComparison.isBestChoice && (
+                    <Trophy className="h-3.5 w-3.5 text-warning" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="start">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h4 className="font-semibold">Analyse IA</h4>
+                    {aiComparison.isBestChoice && (
+                      <Badge className="bg-primary/20 text-primary gap-1">
+                        <Trophy className="h-3 w-3" />
+                        Meilleur choix
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground text-xs mb-1">Note ajustée</p>
+                      <div className={cn(
+                        'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold',
+                        aiComparison.adjustedScore >= 80 ? 'bg-success/20 text-success' :
+                        aiComparison.adjustedScore >= 60 ? 'bg-warning/20 text-warning' :
+                        'bg-destructive/20 text-destructive'
+                      )}>
+                        {aiComparison.adjustedScore}
+                        <span className="text-xs font-normal">/100</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-muted-foreground text-xs mb-1">Justification</p>
+                      <p className="text-foreground">{aiComparison.justification}</p>
+                    </div>
+
+                    <div className="pt-2 border-t space-y-1">
+                      <p className="text-muted-foreground text-xs">Contexte de comparaison</p>
+                      <p className="text-xs"><strong>Usage:</strong> {aiComparison.intendedUse}</p>
+                      <p className="text-xs"><strong>Conditions:</strong> {aiComparison.usageConditions}</p>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
         {/* Status badges */}

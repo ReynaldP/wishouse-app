@@ -12,21 +12,29 @@ import {
 import { useUpdateProductStatus } from '@/hooks/useProducts';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import type { Product } from '@/types';
+import type { Product, AIComparisonResult } from '@/types';
+import { Sparkles, Trophy as TrophyAI } from 'lucide-react';
 
 interface CompareTableProps {
   products: Product[];
   currency: string;
   onProductDecision?: (productId: string, decision: 'to_buy' | 'pending') => void;
+  aiComparisonResult?: AIComparisonResult | null;
 }
 
-export const CompareTable = memo(function CompareTable({ products, currency }: CompareTableProps) {
+export const CompareTable = memo(function CompareTable({ products, currency, aiComparisonResult }: CompareTableProps) {
   const highlights = useMemo(() => calculateComparisonHighlights(products), [products]);
   const scores = useMemo(() =>
     products.map(p => ({ id: p.id, score: calculateProductScore(p) })),
     [products]
   );
   const updateStatus = useUpdateProductStatus();
+
+  // Map AI results by product ID for easy lookup
+  const aiResultsMap = useMemo(() => {
+    if (!aiComparisonResult?.results) return new Map();
+    return new Map(aiComparisonResult.results.map(r => [r.productId, r]));
+  }, [aiComparisonResult]);
 
   const maxScore = Math.max(...scores.map(s => s.score));
   const bestProductId = scores.find(s => s.score === maxScore)?.id;
@@ -102,6 +110,64 @@ export const CompareTable = memo(function CompareTable({ products, currency }: C
               );
             })}
           </tr>
+
+          {/* Score IA - Only show if AI comparison exists */}
+          {aiComparisonResult && (
+            <tr className="border-b bg-primary/5">
+              <td className="p-3 text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Score IA
+                </div>
+              </td>
+              {products.map(product => {
+                const aiResult = aiResultsMap.get(product.id);
+                const aiScore = aiResult?.adjustedScore ?? 0;
+                const isAIBest = aiResult?.isBestChoice;
+
+                return (
+                  <td key={product.id} className={cn("p-3 text-center", isAIBest && "bg-primary/10")}>
+                    <div className="space-y-1">
+                      <div className={cn(
+                        'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold',
+                        isAIBest ? 'bg-primary/20 text-primary' : 'bg-muted'
+                      )}>
+                        {aiScore}
+                        <span className="text-xs font-normal">/100</span>
+                      </div>
+                      {isAIBest && (
+                        <div className="flex items-center justify-center gap-1 text-xs text-primary font-medium">
+                          <TrophyAI className="h-3 w-3" />
+                          Meilleur choix IA
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+          )}
+
+          {/* Justification IA - Only show if AI comparison exists */}
+          {aiComparisonResult && (
+            <tr className="border-b">
+              <td className="p-3 text-sm font-medium">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  Justification IA
+                </div>
+              </td>
+              {products.map(product => {
+                const aiResult = aiResultsMap.get(product.id);
+                return (
+                  <td key={product.id} className="p-3 align-top">
+                    <p className="text-sm text-muted-foreground">
+                      {aiResult?.justification || '-'}
+                    </p>
+                  </td>
+                );
+              })}
+            </tr>
+          )}
 
           {/* Prix */}
           <tr className="border-b">

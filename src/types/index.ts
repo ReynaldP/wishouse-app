@@ -317,3 +317,57 @@ export interface RecommendationResponse {
   recommendations: Recommendation[];
   error?: string;
 }
+
+// ============================================
+// AI COMPARISON TYPES
+// ============================================
+
+export interface AIComparisonInput {
+  productIds: string[];
+  intendedUse: string;
+  usageConditions: string;
+}
+
+export interface AIComparisonProductInput {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  pros: string;
+  cons: string;
+  category?: string;
+}
+
+export interface AIComparisonProductResult {
+  productId: string;
+  productName: string;
+  adjustedScore: number;
+  justification: string;
+  isBestChoice: boolean;
+}
+
+export interface AIComparisonResult {
+  id: string;
+  intendedUse: string;
+  usageConditions: string;
+  bestChoiceId: string;
+  results: AIComparisonProductResult[];
+  createdAt: string;
+}
+
+export interface AIComparisonResponse {
+  success: boolean;
+  comparison?: AIComparisonResult;
+  error?: string;
+}
+
+export interface ProductAIComparison {
+  comparisonId: string;
+  intendedUse: string;
+  usageConditions: string;
+  adjustedScore: number;
+  justification: string;
+  isBestChoice: boolean;
+  bestChoiceId: string;
+  createdAt: string;
+}

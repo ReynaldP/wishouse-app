@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useRef } from 'react';
-import { X, Download, Share2, History, ChevronDown, FileText, Printer } from 'lucide-react';
+import { X, Download, Share2, History, ChevronDown, FileText, Printer, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,11 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CompareTable } from './CompareTable';
 import { ComparisonHistory } from './ComparisonHistory';
+import { AIComparisonModal } from './AIComparisonModal';
+import { AIComparisonResults } from './AIComparisonResults';
 import { useProducts } from '@/hooks/useProducts';
 import { useSettings } from '@/hooks/useSettings';
 import { useUIStore } from '@/stores/useUIStore';
 import { calculateProductScore } from '@/utils/comparison';
 import { formatPrice } from '@/utils/format';
+import type { AIComparisonResult } from '@/types';
 
 export const CompareView = memo(function CompareView() {
   const {
@@ -31,6 +34,8 @@ export const CompareView = memo(function CompareView() {
   const { data: allProducts = [] } = useProducts();
   const { data: settings } = useSettings();
   const [showHistory, setShowHistory] = useState(false);
+  const [aiComparisonModalOpen, setAiComparisonModalOpen] = useState(false);
+  const [aiComparisonResult, setAiComparisonResult] = useState<AIComparisonResult | null>(null);
   const compareTableRef = useRef<HTMLDivElement>(null);
 
   const selectedProducts = useMemo(() => {
@@ -123,6 +128,11 @@ export const CompareView = memo(function CompareView() {
     window.print();
   }, []);
 
+  // Handle AI comparison complete
+  const handleAIComparisonComplete = useCallback((result: AIComparisonResult) => {
+    setAiComparisonResult(result);
+  }, []);
+
   if (selectedProducts.length < 2 && !showHistory) {
     return null;
   }
@@ -155,7 +165,18 @@ export const CompareView = memo(function CompareView() {
             </div>
             <div className="flex items-center gap-1 print:hidden">
               {!showHistory && selectedProducts.length >= 2 && (
-                <DropdownMenu>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 h-8 px-2 sm:px-3 bg-primary/10 border-primary/30 hover:bg-primary/20"
+                    onClick={() => setAiComparisonModalOpen(true)}
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span className="hidden sm:inline">Comparer avec l'IA</span>
+                    <span className="sm:hidden">IA</span>
+                  </Button>
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-1 h-8 px-2 sm:px-3">
                       <Download className="h-3.5 w-3.5" />
@@ -179,6 +200,7 @@ export const CompareView = memo(function CompareView() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </>
               )}
               <Button
                 variant="outline"
@@ -216,9 +238,26 @@ export const CompareView = memo(function CompareView() {
               }}
             />
           ) : (
-            <CompareTable products={selectedProducts} currency={currency} />
+            <>
+              {aiComparisonResult && (
+                <AIComparisonResults result={aiComparisonResult} className="mb-4" />
+              )}
+              <CompareTable
+                products={selectedProducts}
+                currency={currency}
+                aiComparisonResult={aiComparisonResult}
+              />
+            </>
           )}
         </div>
+
+        {/* AI Comparison Modal */}
+        <AIComparisonModal
+          open={aiComparisonModalOpen}
+          onOpenChange={setAiComparisonModalOpen}
+          products={selectedProducts}
+          onComparisonComplete={handleAIComparisonComplete}
+        />
       </SheetContent>
     </Sheet>
   );
