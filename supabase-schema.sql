@@ -60,6 +60,8 @@ CREATE TABLE products (
   is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
   pros TEXT DEFAULT '',
   cons TEXT DEFAULT '',
+  target_price DECIMAL(12, 2) DEFAULT NULL,
+  price_alert_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -81,6 +83,17 @@ CREATE TABLE settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Price History table (for price tracking feature)
+CREATE TYPE price_source AS ENUM ('manual', 'auto_check', 'web_clipper');
+
+CREATE TABLE price_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE NOT NULL,
+  price DECIMAL(12, 2) NOT NULL,
+  source price_source NOT NULL DEFAULT 'manual',
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX idx_categories_user_id ON categories(user_id);
 CREATE INDEX idx_subcategories_category_id ON subcategories(category_id);
@@ -93,6 +106,9 @@ CREATE INDEX idx_products_status ON products(status);
 CREATE INDEX idx_products_is_favorite ON products(is_favorite);
 CREATE INDEX idx_product_tags_product_id ON product_tags(product_id);
 CREATE INDEX idx_product_tags_tag_id ON product_tags(tag_id);
+CREATE INDEX idx_price_history_product_id ON price_history(product_id);
+CREATE INDEX idx_price_history_recorded_at ON price_history(recorded_at DESC);
+CREATE INDEX idx_products_price_alert ON products(price_alert_enabled) WHERE price_alert_enabled = TRUE;
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
@@ -101,6 +117,7 @@ ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE price_history ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for categories
 CREATE POLICY "Users can view their own categories" ON categories
@@ -163,6 +180,20 @@ CREATE POLICY "Users can create their own settings" ON settings
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own settings" ON settings
   FOR UPDATE USING (auth.uid() = user_id);
+
+-- RLS Policies for price_history (based on product ownership)
+CREATE POLICY "Users can view price history of their products" ON price_history
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM products WHERE products.id = price_history.product_id AND products.user_id = auth.uid())
+  );
+CREATE POLICY "Users can create price history for their products" ON price_history
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM products WHERE products.id = price_history.product_id AND products.user_id = auth.uid())
+  );
+CREATE POLICY "Users can delete price history of their products" ON price_history
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM products WHERE products.id = price_history.product_id AND products.user_id = auth.uid())
+  );
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

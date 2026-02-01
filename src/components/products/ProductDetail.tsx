@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +20,16 @@ import {
   ShoppingCart,
   Check,
 } from 'lucide-react';
+import { PriceHistoryPanel } from './PriceHistoryPanel';
+import { PriceAlertBadge } from './PriceAlertBadge';
+import { RecommendationPanel } from '@/components/recommendations/RecommendationPanel';
 import { formatPrice, formatDateLong, isOverdue } from '@/utils/format';
 import {
   useToggleFavorite,
   useDeleteProduct,
   useUpdateProductStatus,
 } from '@/hooks/useProducts';
+import { useSettings } from '@/hooks/useSettings';
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG, PRIORITY_CONFIG } from '@/lib/constants';
 import type { Product, Status } from '@/types';
@@ -41,11 +47,15 @@ export function ProductDetail({
   onOpenChange,
   onEdit,
 }: ProductDetailProps) {
+  const [activeTab, setActiveTab] = useState('details');
   const toggleFavorite = useToggleFavorite();
   const deleteProduct = useDeleteProduct();
   const updateStatus = useUpdateProductStatus();
+  const { data: settings } = useSettings();
 
   if (!product) return null;
+
+  const currency = settings?.currency || 'EUR';
 
   const handleDelete = () => {
     if (confirm('Supprimer ce produit ?')) {
@@ -118,8 +128,11 @@ export function ProductDetail({
         </SheetHeader>
 
         {/* Price */}
-        <div className="text-3xl font-bold text-primary mb-4">
-          {formatPrice(product.price)}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="text-3xl font-bold text-primary">
+            {formatPrice(product.price, currency)}
+          </div>
+          <PriceAlertBadge product={product} showDetails />
         </div>
 
         {/* Status badges */}
@@ -173,94 +186,113 @@ export function ProductDetail({
           )}
         </div>
 
-        {/* Tags */}
-        {product.tags && product.tags.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-2">Tags</h4>
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant="outline"
-                  style={{
-                    borderColor: tag.color,
-                    color: tag.color,
-                  }}
+        {/* Tabs for Details, Price Tracking and Alternatives */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="details">Détails</TabsTrigger>
+            <TabsTrigger value="price">Prix</TabsTrigger>
+            <TabsTrigger value="alternatives">Alternatives</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="mt-4 space-y-6">
+            {/* Tags */}
+            {product.tags && product.tags.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Tags</h4>
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      style={{
+                        borderColor: tag.color,
+                        color: tag.color,
+                      }}
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Planned date */}
+            {product.planned_date && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Date prévue</h4>
+                <div
+                  className={cn(
+                    'flex items-center gap-2',
+                    overdue && 'text-destructive'
+                  )}
                 >
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+                  <Calendar className="h-4 w-4" />
+                  <span>{formatDateLong(product.planned_date)}</span>
+                </div>
+              </div>
+            )}
 
-        {/* Planned date */}
-        {product.planned_date && (
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-2">Date prévue</h4>
-            <div
-              className={cn(
-                'flex items-center gap-2',
-                overdue && 'text-destructive'
-              )}
-            >
-              <Calendar className="h-4 w-4" />
-              <span>{formatDateLong(product.planned_date)}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Description */}
-        {product.description && (
-          <div className="mb-6">
-            <h4 className="text-sm font-medium mb-2">Description</h4>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {product.description}
-            </p>
-          </div>
-        )}
-
-        {/* Pros and Cons */}
-        {(product.pros || product.cons) && (
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {product.pros && (
+            {/* Description */}
+            {product.description && (
               <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-1 text-success">
-                  <ThumbsUp className="h-4 w-4" />
-                  Points positifs
-                </h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {product.pros}
+                <h4 className="text-sm font-medium mb-2">Description</h4>
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {product.description}
                 </p>
               </div>
             )}
-            {product.cons && (
-              <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-1 text-destructive">
-                  <ThumbsDown className="h-4 w-4" />
-                  Points négatifs
-                </h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {product.cons}
-                </p>
+
+            {/* Pros and Cons */}
+            {(product.pros || product.cons) && (
+              <div className="grid grid-cols-2 gap-4">
+                {product.pros && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-1 text-success">
+                      <ThumbsUp className="h-4 w-4" />
+                      Points positifs
+                    </h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {product.pros}
+                    </p>
+                  </div>
+                )}
+                {product.cons && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-1 text-destructive">
+                      <ThumbsDown className="h-4 w-4" />
+                      Points négatifs
+                    </h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {product.cons}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Link */}
-        {product.link && (
-          <div className="mb-6">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => window.open(product.link, '_blank')}
-            >
-              <ExternalLink className="h-4 w-4" />
-              Voir le produit
-            </Button>
-          </div>
-        )}
+            {/* Link */}
+            {product.link && (
+              <div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => window.open(product.link, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Voir le produit
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="price" className="mt-4">
+            <PriceHistoryPanel product={product} currency={currency} />
+          </TabsContent>
+
+          <TabsContent value="alternatives" className="mt-4">
+            <RecommendationPanel product={product} currency={currency} />
+          </TabsContent>
+        </Tabs>
 
         {/* Actions */}
         <div className="flex gap-2 pt-4 border-t">

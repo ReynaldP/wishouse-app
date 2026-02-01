@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, X, Globe, Bell, Target } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { useSubcategories } from '@/hooks/useSubcategories';
 import { useTags } from '@/hooks/useTags';
@@ -51,6 +52,8 @@ const defaultValues: ProductFormData = {
   pros: '',
   cons: '',
   tag_ids: [],
+  target_price: null,
+  price_alert_enabled: false,
 };
 
 export function ProductForm({ open, onOpenChange, editingProductId }: ProductFormProps) {
@@ -97,6 +100,8 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
           pros: product.pros || '',
           cons: product.cons || '',
           tag_ids: product.tags?.map(t => t.id) || [],
+          target_price: product.target_price,
+          price_alert_enabled: product.price_alert_enabled,
         });
       } else if (prefillProductData) {
         // Pre-fill with web clipper data
@@ -130,13 +135,19 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
 
   const onSubmit = async (data: ProductFormData) => {
     try {
+      const productData = {
+        ...data,
+        target_price: data.target_price ?? null,
+        price_alert_enabled: data.price_alert_enabled ?? false,
+      };
+
       if (editingProductId) {
         await updateProduct.mutateAsync({
           id: editingProductId,
-          updates: data,
+          updates: productData,
         });
       } else {
-        await createProduct.mutateAsync(data);
+        await createProduct.mutateAsync(productData);
       }
       onOpenChange(false);
     } catch {
@@ -217,36 +228,82 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Categorie</Label>
-                  <Controller
-                    control={control}
-                    name="category_id"
-                    render={({ field }) => (
-                      <Select
-                        value={field.value || '__none__'}
-                        onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                      >
-                        <SelectTrigger className="h-12 text-base">
-                          <SelectValue placeholder="Choisir..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Aucune</SelectItem>
-                          {categories?.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: cat.color }}
-                                />
-                                {cat.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                  <Label htmlFor="target_price" className="text-sm font-medium flex items-center gap-1">
+                    <Target className="h-3.5 w-3.5" />
+                    Prix cible
+                  </Label>
+                  <Input
+                    id="target_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Alerte si..."
+                    className="h-12 text-base"
+                    {...register('target_price', {
+                      valueAsNumber: true,
+                      setValueAs: (v) => v === '' || v === null || isNaN(Number(v)) ? null : Number(v)
+                    })}
                   />
                 </div>
+              </div>
+
+              {/* Price Alert Toggle */}
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label htmlFor="price_alert" className="text-sm font-medium cursor-pointer">
+                      Alerte de prix
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Notification quand le prix atteint la cible
+                    </p>
+                  </div>
+                </div>
+                <Controller
+                  control={control}
+                  name="price_alert_enabled"
+                  render={({ field }) => (
+                    <Switch
+                      id="price_alert"
+                      checked={field.value || false}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Categorie</Label>
+                <Controller
+                  control={control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || '__none__'}
+                      onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                    >
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Choisir..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Aucune</SelectItem>
+                        {categories?.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
               {/* Subcategory - only if category selected */}

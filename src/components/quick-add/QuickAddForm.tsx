@@ -80,7 +80,9 @@ export const QuickAddForm = memo(function QuickAddForm({ open, onOpenChange }: Q
         planned_date: null,
         is_favorite: false,
         pros: '',
-        cons: ''
+        cons: '',
+        target_price: null,
+        price_alert_enabled: false
       });
 
       // Remember the category for next time

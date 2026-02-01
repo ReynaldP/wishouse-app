@@ -15,6 +15,7 @@ import { formatPrice, formatDate, isOverdue } from '@/utils/format';
 import { useToggleFavorite, useDeleteProduct } from '@/hooks/useProducts';
 import { useUIStore } from '@/stores/useUIStore';
 import { ProductSelector } from '@/components/comparison/ProductSelector';
+import { PriceAlertIndicator } from './PriceAlertBadge';
 import { cn } from '@/lib/utils';
 import { STATUS_CONFIG } from '@/lib/constants';
 import type { Product } from '@/types';
@@ -183,8 +184,11 @@ export const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(fun
 
           {/* Price and date row */}
           <div className="flex items-center justify-between gap-2">
-            <div className="text-xl sm:text-2xl font-bold text-primary">
-              {formatPrice(product.price)}
+            <div className="flex items-center gap-2">
+              <span className="text-xl sm:text-2xl font-bold text-primary">
+                {formatPrice(product.price)}
+              </span>
+              <PriceAlertIndicator product={product} />
             </div>
 
             {/* Planned date */}

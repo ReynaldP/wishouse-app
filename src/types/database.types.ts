@@ -45,6 +45,30 @@ export type Database = {
         }
         Relationships: []
       }
+      price_history: {
+        Row: {
+          id: string
+          product_id: string
+          price: number
+          source: 'manual' | 'auto_check' | 'web_clipper'
+          recorded_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          price: number
+          source?: 'manual' | 'auto_check' | 'web_clipper'
+          recorded_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          price?: number
+          source?: 'manual' | 'auto_check' | 'web_clipper'
+          recorded_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           id: string
@@ -62,6 +86,8 @@ export type Database = {
           is_favorite: boolean
           pros: string
           cons: string
+          target_price: number | null
+          price_alert_enabled: boolean
           created_at: string
           updated_at: string
         }
@@ -81,6 +107,8 @@ export type Database = {
           is_favorite?: boolean
           pros?: string
           cons?: string
+          target_price?: number | null
+          price_alert_enabled?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -100,6 +128,8 @@ export type Database = {
           is_favorite?: boolean
           pros?: string
           cons?: string
+          target_price?: number | null
+          price_alert_enabled?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -217,6 +247,7 @@ export type Database = {
     Enums: {
       priority: 'low' | 'medium' | 'high'
       status: 'pending' | 'to_buy' | 'purchased'
+      price_source: 'manual' | 'auto_check' | 'web_clipper'
     }
     CompositeTypes: {
       [_ in never]: never

@@ -49,6 +49,8 @@ export interface Product {
   is_favorite: boolean;
   pros: string;
   cons: string;
+  target_price: number | null;
+  price_alert_enabled: boolean;
   created_at: string;
   updated_at: string;
   category?: Category;
@@ -248,4 +250,70 @@ export interface BudgetAlert {
   message: string;
   categoryId?: string;
   categoryName?: string;
+}
+
+// ============================================
+// PRICE TRACKING TYPES
+// ============================================
+
+export type PriceSource = 'manual' | 'auto_check' | 'web_clipper';
+
+export interface PriceHistory {
+  id: string;
+  product_id: string;
+  price: number;
+  source: PriceSource;
+  recorded_at: string;
+}
+
+export interface PriceHistoryInsert {
+  product_id: string;
+  price: number;
+  source: PriceSource;
+}
+
+export interface PriceCheckResult {
+  productId: string;
+  productName: string;
+  previousPrice: number;
+  currentPrice: number | null;
+  hasChanged: boolean;
+  percentChange: number;
+  reachedTarget: boolean;
+}
+
+export interface PriceAlert {
+  productId: string;
+  productName: string;
+  currentPrice: number;
+  targetPrice: number;
+  percentBelow: number;
+}
+
+// ============================================
+// AI RECOMMENDATIONS TYPES
+// ============================================
+
+export interface Recommendation {
+  name: string;
+  price: number;
+  image_url: string;
+  link: string;
+  source: string;
+  relevance_score: number;
+  ai_reason: string;
+}
+
+export interface RecommendationRequest {
+  productName: string;
+  productDescription?: string;
+  category?: string;
+  maxPrice?: number;
+  sites?: string[];
+}
+
+export interface RecommendationResponse {
+  success: boolean;
+  recommendations: Recommendation[];
+  error?: string;
 }

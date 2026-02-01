@@ -249,3 +249,59 @@ export function isValidUrl(url: string): boolean {
     return false;
   }
 }
+
+// ============================================
+// SEARCH FUNCTIONALITY
+// ============================================
+
+// Search URL templates for supported sites
+const SEARCH_URLS: Record<string, (query: string) => string> = {
+  amazon: (q) => `https://www.amazon.fr/s?k=${encodeURIComponent(q)}`,
+  ikea: (q) => `https://www.ikea.com/fr/fr/search/?q=${encodeURIComponent(q)}`,
+  leroymerlin: (q) => `https://www.leroymerlin.fr/recherche?q=${encodeURIComponent(q)}`,
+  cdiscount: (q) => `https://www.cdiscount.com/search/10/${encodeURIComponent(q)}.html`,
+  fnac: (q) => `https://www.fnac.com/SearchResult/ResultList.aspx?Search=${encodeURIComponent(q)}`,
+  boulanger: (q) => `https://www.boulanger.com/resultats?tr=${encodeURIComponent(q)}`,
+  conforama: (q) => `https://www.conforama.fr/search?q=${encodeURIComponent(q)}`,
+  but: (q) => `https://www.but.fr/recherche?q=${encodeURIComponent(q)}`,
+};
+
+export type SupportedSite = keyof typeof SEARCH_URLS;
+
+export const SUPPORTED_SITES: { key: SupportedSite; name: string }[] = [
+  { key: 'amazon', name: 'Amazon' },
+  { key: 'ikea', name: 'IKEA' },
+  { key: 'leroymerlin', name: 'Leroy Merlin' },
+  { key: 'cdiscount', name: 'Cdiscount' },
+  { key: 'fnac', name: 'Fnac' },
+  { key: 'boulanger', name: 'Boulanger' },
+  { key: 'conforama', name: 'Conforama' },
+  { key: 'but', name: 'But' },
+];
+
+/**
+ * Generate a search URL for a specific site
+ */
+export function getSearchUrl(site: SupportedSite, query: string): string {
+  const urlGenerator = SEARCH_URLS[site];
+  if (!urlGenerator) {
+    throw new Error(`Unknown site: ${site}`);
+  }
+  return urlGenerator(query);
+}
+
+/**
+ * Get site name from key
+ */
+export function getSiteName(siteKey: string): string {
+  const site = SUPPORTED_SITES.find(s => s.key === siteKey);
+  return site?.name || siteKey;
+}
+
+/**
+ * Open search results in a new tab
+ */
+export function openSearchInNewTab(site: SupportedSite, query: string): void {
+  const url = getSearchUrl(site, query);
+  window.open(url, '_blank');
+}

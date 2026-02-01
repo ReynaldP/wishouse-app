@@ -14,7 +14,9 @@ export const productSchema = z.object({
   is_favorite: z.boolean(),
   pros: z.string().max(1000, 'Texte trop long'),
   cons: z.string().max(1000, 'Texte trop long'),
-  tag_ids: z.array(z.string()).optional()
+  tag_ids: z.array(z.string()).optional(),
+  target_price: z.number().min(0, 'Le prix cible doit être positif').nullable().optional(),
+  price_alert_enabled: z.boolean().optional()
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
