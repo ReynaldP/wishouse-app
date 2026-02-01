@@ -57,7 +57,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 2048,
         messages: [
           {
@@ -69,9 +69,9 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Anthropic API error:', errorText);
-      throw new Error(`Anthropic API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Anthropic API error:', JSON.stringify(errorData));
+      throw new Error(errorData.error?.message || `Anthropic API error: ${response.status}`);
     }
 
     const message = await response.json();
