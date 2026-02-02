@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback, useRef } from 'react';
+import { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { X, Download, Share2, History, ChevronDown, FileText, Printer, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { AIComparisonResults } from './AIComparisonResults';
 import { useProducts } from '@/hooks/useProducts';
 import { useSettings } from '@/hooks/useSettings';
 import { useUIStore } from '@/stores/useUIStore';
+import { useExistingAIComparisonForProducts } from '@/hooks/useAIComparison';
 import { calculateProductScore } from '@/utils/comparison';
 import { formatPrice } from '@/utils/format';
 import type { AIComparisonResult } from '@/types';
@@ -45,6 +46,29 @@ export const CompareView = memo(function CompareView() {
   }, [allProducts, comparisonProductIds]);
 
   const currency = settings?.currency ?? 'EUR';
+
+  // Load existing AI comparison for selected products
+  const { data: existingAIComparison } = useExistingAIComparisonForProducts(
+    comparisonProductIds,
+    selectedProducts
+  );
+
+  // Track the product IDs for which we've set the comparison
+  const previousProductIdsRef = useRef<string>('');
+  const currentProductIdsKey = comparisonProductIds.sort().join(',');
+
+  // Initialize aiComparisonResult with existing comparison when available
+  // Reset when products change
+  useEffect(() => {
+    if (previousProductIdsRef.current !== currentProductIdsKey) {
+      // Products changed, reset to existing comparison (or null)
+      setAiComparisonResult(existingAIComparison || null);
+      previousProductIdsRef.current = currentProductIdsKey;
+    } else if (existingAIComparison && !aiComparisonResult) {
+      // First load with existing comparison
+      setAiComparisonResult(existingAIComparison);
+    }
+  }, [existingAIComparison, currentProductIdsKey, aiComparisonResult]);
 
   // Calculate winner
   const winnerId = useMemo(() => {
@@ -173,7 +197,9 @@ export const CompareView = memo(function CompareView() {
                     onClick={() => setAiComparisonModalOpen(true)}
                   >
                     <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    <span className="hidden sm:inline">Comparer avec l'IA</span>
+                    <span className="hidden sm:inline">
+                      {aiComparisonResult ? 'Relancer la comparaison IA' : 'Comparer avec l\'IA'}
+                    </span>
                     <span className="sm:hidden">IA</span>
                   </Button>
                   <DropdownMenu>

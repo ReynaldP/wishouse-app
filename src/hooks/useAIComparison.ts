@@ -163,6 +163,11 @@ export function useCreateAIComparison() {
         queryClient.invalidateQueries({ queryKey: ['product-ai-comparison', r.productId] });
       });
 
+      // Invalidate existing comparison query for these products
+      const productIds = data.results.map(r => r.productId).sort().join(',');
+      queryClient.invalidateQueries({ queryKey: ['existing-ai-comparison', productIds] });
+      queryClient.invalidateQueries({ queryKey: ['products-ai-comparison', productIds] });
+
       toast({
         title: 'Analyse terminée',
         description: 'Les résultats de la comparaison IA ont été enregistrés',
@@ -301,6 +306,106 @@ export function useProductsAIComparison(productIds: string[]) {
       return resultMap;
     },
     enabled: productIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/**
+ * Hook to get an existing AI comparison for a specific set of products
+ * Returns the comparison if all products were compared together, null otherwise
+ */
+export function useExistingAIComparisonForProducts(
+  productIds: string[],
+  products: Product[]
+) {
+  return useQuery({
+    queryKey: ['existing-ai-comparison', productIds.sort().join(',')],
+    queryFn: async (): Promise<AIComparisonResult | null> => {
+      if (productIds.length < 2) return null;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      // Get all comparison results for these products
+      const { data: results, error } = await (supabase as any)
+        .from('ai_comparison_results')
+        .select(`
+          product_id,
+          adjusted_score,
+          justification,
+          is_best_choice,
+          comparison:ai_comparisons (
+            id,
+            intended_use,
+            usage_conditions,
+            best_choice_id,
+            created_at
+          )
+        `)
+        .in('product_id', productIds);
+
+      if (error) {
+        console.error('Error fetching existing AI comparison:', error);
+        return null;
+      }
+
+      if (!results || results.length === 0) return null;
+
+      // Group results by comparison_id
+      const comparisonGroups = new Map<string, any[]>();
+
+      for (const result of results) {
+        const comparison = Array.isArray(result.comparison)
+          ? result.comparison[0]
+          : result.comparison;
+
+        if (!comparison) continue;
+
+        const comparisonId = comparison.id;
+        if (!comparisonGroups.has(comparisonId)) {
+          comparisonGroups.set(comparisonId, []);
+        }
+        comparisonGroups.get(comparisonId)!.push({ ...result, comparison });
+      }
+
+      // Find a comparison that has exactly all the selected products
+      for (const [comparisonId, groupResults] of comparisonGroups) {
+        const groupProductIds = new Set(groupResults.map(r => r.product_id));
+        const selectedProductIds = new Set(productIds);
+
+        // Check if this comparison has exactly the same products
+        if (groupProductIds.size === selectedProductIds.size &&
+            [...selectedProductIds].every(id => groupProductIds.has(id))) {
+          // Found a matching comparison
+          const firstResult = groupResults[0];
+          const comparison = firstResult.comparison;
+
+          // Build the AIComparisonResult
+          const aiResults: AIComparisonProductResult[] = groupResults.map(r => {
+            const product = products.find(p => p.id === r.product_id);
+            return {
+              productId: r.product_id,
+              productName: product?.name || 'Produit inconnu',
+              adjustedScore: r.adjusted_score,
+              justification: r.justification,
+              isBestChoice: r.is_best_choice
+            };
+          });
+
+          return {
+            id: comparisonId,
+            intendedUse: comparison.intended_use,
+            usageConditions: comparison.usage_conditions,
+            bestChoiceId: comparison.best_choice_id,
+            results: aiResults,
+            createdAt: comparison.created_at
+          };
+        }
+      }
+
+      return null;
+    },
+    enabled: productIds.length >= 2 && products.length >= 2,
     staleTime: 1000 * 60 * 5,
   });
 }
