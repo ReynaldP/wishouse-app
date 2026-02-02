@@ -20,8 +20,9 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, X, Globe, Bell, Target } from 'lucide-react';
+import { Loader2, X, Globe, Bell, Target, Sparkles } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
+import { useGenerateProsCons } from '@/hooks/useGenerateProsCons';
 import { useSubcategories } from '@/hooks/useSubcategories';
 import { useTags } from '@/hooks/useTags';
 import { useCreateProduct, useUpdateProduct, useProduct } from '@/hooks/useProducts';
@@ -64,6 +65,7 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const generateProsCons = useGenerateProsCons();
 
   const {
     register,
@@ -165,6 +167,28 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
   };
 
   const isLoading = editingProductId && loadingProduct;
+
+  const handleGenerateProsCons = async () => {
+    const name = watch('name');
+    const description = watch('description');
+    const price = watch('price');
+    const link = watch('link');
+    const categoryId = watch('category_id');
+    const category = categories?.find(c => c.id === categoryId)?.name;
+
+    if (!name || name.trim().length === 0) return;
+
+    const result = await generateProsCons.mutateAsync({
+      name,
+      description: description || undefined,
+      price: price || undefined,
+      category: category || undefined,
+      link: link || undefined,
+    });
+
+    setValue('pros', result.pros);
+    setValue('cons', result.cons);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -463,23 +487,42 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
 
               {/* Pros and Cons */}
               <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Avantages & Inconvénients</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateProsCons}
+                    disabled={generateProsCons.isPending || !watch('name')}
+                    className="gap-1.5 h-8 text-xs bg-primary/10 border-primary/30 hover:bg-primary/20"
+                  >
+                    {generateProsCons.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    )}
+                    Générer avec l'IA
+                  </Button>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="pros" className="text-sm font-medium">Points positifs</Label>
+                  <Label htmlFor="pros" className="text-sm text-muted-foreground">Points positifs</Label>
                   <Textarea
                     id="pros"
                     placeholder="Avantages..."
-                    rows={2}
+                    rows={3}
                     className="text-base resize-none"
                     {...register('pros')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cons" className="text-sm font-medium">Points negatifs</Label>
+                  <Label htmlFor="cons" className="text-sm text-muted-foreground">Points négatifs</Label>
                   <Textarea
                     id="cons"
-                    placeholder="Inconvenients..."
-                    rows={2}
+                    placeholder="Inconvénients..."
+                    rows={3}
                     className="text-base resize-none"
                     {...register('cons')}
                   />
