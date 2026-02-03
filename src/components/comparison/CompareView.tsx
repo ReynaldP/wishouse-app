@@ -70,13 +70,24 @@ export const CompareView = memo(function CompareView() {
     }
   }, [existingAIComparison, currentProductIdsKey, aiComparisonResult]);
 
-  // Calculate winner
+  // Calculate winner - use AI score if available
   const winnerId = useMemo(() => {
     if (selectedProducts.length < 2) return undefined;
+
+    // If AI comparison exists, use AI results
+    if (aiComparisonResult?.results) {
+      const aiBest = aiComparisonResult.results.find(r => r.isBestChoice);
+      if (aiBest) return aiBest.productId;
+      // Fallback: highest AI score
+      const maxAIScore = Math.max(...aiComparisonResult.results.map(r => r.adjustedScore));
+      return aiComparisonResult.results.find(r => r.adjustedScore === maxAIScore)?.productId;
+    }
+
+    // Fallback to classic score
     const scores = selectedProducts.map(p => ({ id: p.id, score: calculateProductScore(p) }));
     const maxScore = Math.max(...scores.map(s => s.score));
     return scores.find(s => s.score === maxScore)?.id;
-  }, [selectedProducts]);
+  }, [selectedProducts, aiComparisonResult]);
 
   const handleClose = () => {
     setComparisonViewOpen(false);
@@ -116,16 +127,37 @@ export const CompareView = memo(function CompareView() {
 
   // Export to text for sharing
   const handleShare = useCallback(async () => {
-    const winner = selectedProducts.find(p => p.id === winnerId);
+    // Use AI results if available
+    const aiResultsMap = aiComparisonResult?.results
+      ? new Map(aiComparisonResult.results.map(r => [r.productId, r]))
+      : null;
+
+    // Determine winner based on AI or classic score
+    const actualWinnerId = aiResultsMap
+      ? (aiComparisonResult?.results?.find(r => r.isBestChoice)?.productId || winnerId)
+      : winnerId;
+
+    const winner = selectedProducts.find(p => p.id === actualWinnerId);
+    const winnerJustification = aiResultsMap?.get(actualWinnerId || '')?.justification;
+
     const text = `🏠 Comparaison WisHouse\n\n` +
       selectedProducts.map(p => {
-        const score = calculateProductScore(p);
-        const isWinner = p.id === winnerId;
-        return `${isWinner ? '🏆 ' : ''}${p.name}\n` +
+        const aiResult = aiResultsMap?.get(p.id);
+        const score = aiResult?.adjustedScore ?? calculateProductScore(p);
+        const isWinner = p.id === actualWinnerId;
+        let productText = `${isWinner ? '🏆 ' : ''}${p.name}\n` +
           `   Prix: ${formatPrice(p.price, currency)}\n` +
-          `   Score: ${score}/100`;
+          `   ${aiResultsMap ? 'Score IA' : 'Score'}: ${score}/100`;
+
+        // Add AI justification for each product
+        if (aiResult?.justification) {
+          productText += `\n   💡 ${aiResult.justification}`;
+        }
+
+        return productText;
       }).join('\n\n') +
-      (winner ? `\n\n✅ Recommandation: ${winner.name}` : '');
+      (winner ? `\n\n✅ ${aiResultsMap ? 'Recommandation IA' : 'Recommandation'}: ${winner.name}` : '') +
+      (winnerJustification ? `\n📝 ${winnerJustification}` : '');
 
     if (navigator.share) {
       try {
@@ -145,7 +177,7 @@ export const CompareView = memo(function CompareView() {
         alert('Impossible de partager');
       }
     }
-  }, [selectedProducts, winnerId, currency]);
+  }, [selectedProducts, winnerId, currency, aiComparisonResult]);
 
   // Print comparison
   const handlePrint = useCallback(() => {

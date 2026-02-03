@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Package, Calendar, Star, AlertTriangle, XCircle, ShoppingCart, Trophy, Tag } from 'lucide-react';
+import { Package, Calendar, AlertTriangle, XCircle, ShoppingCart, Trophy, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice, formatDate, isOverdue } from '@/utils/format';
@@ -36,8 +36,22 @@ export const CompareTable = memo(function CompareTable({ products, currency, aiC
     return new Map(aiComparisonResult.results.map(r => [r.productId, r]));
   }, [aiComparisonResult]);
 
-  const maxScore = Math.max(...scores.map(s => s.score));
-  const bestProductId = scores.find(s => s.score === maxScore)?.id;
+  // Determine best product: use AI score if available, otherwise fallback to classic score
+  const bestProductId = useMemo(() => {
+    if (aiComparisonResult?.results) {
+      // Find the product marked as best choice by AI
+      const aiBest = aiComparisonResult.results.find(r => r.isBestChoice);
+      if (aiBest) return aiBest.productId;
+      // Fallback: highest AI score
+      const maxAIScore = Math.max(...aiComparisonResult.results.map(r => r.adjustedScore));
+      return aiComparisonResult.results.find(r => r.adjustedScore === maxAIScore)?.productId;
+    }
+    // No AI results, use classic score
+    const maxScore = Math.max(...scores.map(s => s.score));
+    return scores.find(s => s.score === maxScore)?.id;
+  }, [aiComparisonResult, scores]);
+
+  const bestAIScore = aiComparisonResult?.results?.find(r => r.productId === bestProductId)?.adjustedScore;
 
   const handleDecision = (productId: string, decision: 'to_buy' | 'pending') => {
     updateStatus.mutate({ id: productId, status: decision });
@@ -85,32 +99,6 @@ export const CompareTable = memo(function CompareTable({ products, currency, aiC
           </tr>
         </thead>
         <tbody>
-          {/* Score */}
-          <tr className="border-b bg-muted/30">
-            <td className="p-3 text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-warning" />
-                Score
-              </div>
-            </td>
-            {products.map(product => {
-              const productScore = scores.find(s => s.id === product.id)?.score ?? 0;
-              const isBest = productScore === maxScore;
-
-              return (
-                <td key={product.id} className="p-3 text-center">
-                  <div className={cn(
-                    'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold',
-                    isBest ? 'bg-success/20 text-success' : 'bg-muted'
-                  )}>
-                    {productScore}
-                    <span className="text-xs font-normal">/100</span>
-                  </div>
-                </td>
-              );
-            })}
-          </tr>
-
           {/* Score IA - Only show if AI comparison exists */}
           {aiComparisonResult && (
             <tr className="border-b bg-primary/5">
@@ -422,16 +410,28 @@ export const CompareTable = memo(function CompareTable({ products, currency, aiC
 
       {/* Recommendation Banner */}
       {bestProductId && (
-        <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
-          <div className="flex items-center gap-2 text-success">
-            <Trophy className="h-4 w-4" />
+        <div className={cn(
+          "mt-4 p-3 rounded-lg border",
+          aiComparisonResult ? "bg-primary/10 border-primary/20" : "bg-success/10 border-success/20"
+        )}>
+          <div className={cn(
+            "flex items-center gap-2",
+            aiComparisonResult ? "text-primary" : "text-success"
+          )}>
+            {aiComparisonResult ? <Sparkles className="h-4 w-4" /> : <Trophy className="h-4 w-4" />}
             <span className="font-medium text-sm">
-              Recommandation : {products.find(p => p.id === bestProductId)?.name}
+              {aiComparisonResult ? 'Recommandation IA' : 'Recommandation'} : {products.find(p => p.id === bestProductId)?.name}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Ce produit a obtenu le meilleur score global ({maxScore}/100)
-          </p>
+          {aiComparisonResult ? (
+            <p className="text-sm text-muted-foreground mt-2">
+              {aiResultsMap.get(bestProductId)?.justification}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              Ce produit a obtenu le meilleur score global
+            </p>
+          )}
         </div>
       )}
     </div>
