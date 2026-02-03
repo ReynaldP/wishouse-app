@@ -51,8 +51,6 @@ export const CompareTable = memo(function CompareTable({ products, currency, aiC
     return scores.find(s => s.score === maxScore)?.id;
   }, [aiComparisonResult, scores]);
 
-  const bestAIScore = aiComparisonResult?.results?.find(r => r.productId === bestProductId)?.adjustedScore;
-
   const handleDecision = (productId: string, decision: 'to_buy' | 'pending') => {
     updateStatus.mutate({ id: productId, status: decision });
   };
