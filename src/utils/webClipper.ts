@@ -332,6 +332,56 @@ const SITE_PARSERS: Record<string, (doc: Document, url: string) => Partial<Clipp
 
     return { name: name || '', price, image_url: image || '' };
   },
+
+  'manomano': (doc) => {
+    const name = findText(doc, [
+      'h1[data-testid="product-title"]',
+      '.product-title h1',
+      'h1.title',
+      '[itemprop="name"]'
+    ]);
+
+    const priceText = findText(doc, [
+      '[data-testid="product-price"]',
+      '.price-value',
+      '[itemprop="price"]',
+      '.product-price'
+    ]);
+    const price = parsePrice(priceText);
+
+    const image = findAttribute(doc, [
+      '[data-testid="product-image"] img',
+      '.product-image img',
+      '[itemprop="image"]'
+    ], 'src');
+
+    return { name: name || '', price, image_url: image || '' };
+  },
+
+  'maisonsdumonde': (doc) => {
+    const name = findText(doc, [
+      'h1.product-title',
+      '.pdp-title h1',
+      '[itemprop="name"]',
+      'h1[data-testid="product-name"]'
+    ]);
+
+    const priceText = findText(doc, [
+      '.product-price',
+      '.price-value',
+      '[itemprop="price"]',
+      '[data-testid="product-price"]'
+    ]);
+    const price = parsePrice(priceText);
+
+    const image = findAttribute(doc, [
+      '.product-image img',
+      '.pdp-image img',
+      '[itemprop="image"]'
+    ], 'src');
+
+    return { name: name || '', price, image_url: image || '' };
+  },
 };
 
 // Extract source site from URL
@@ -678,6 +728,8 @@ const SEARCH_URLS: Record<string, (query: string) => string> = {
   but: (q) => `https://www.but.fr/recherche?q=${encodeURIComponent(q)}`,
   darty: (q) => `https://www.darty.com/nav/recherche?text=${encodeURIComponent(q)}`,
   castorama: (q) => `https://www.castorama.fr/search?q=${encodeURIComponent(q)}`,
+  manomano: (q) => `https://www.manomano.fr/recherche/${encodeURIComponent(q)}`,
+  maisonsdumonde: (q) => `https://www.maisonsdumonde.com/FR/fr/recherche/${encodeURIComponent(q)}`,
 };
 
 export type SupportedSite = keyof typeof SEARCH_URLS;
@@ -693,6 +745,8 @@ export const SUPPORTED_SITES: { key: SupportedSite; name: string }[] = [
   { key: 'but', name: 'But' },
   { key: 'darty', name: 'Darty' },
   { key: 'castorama', name: 'Castorama' },
+  { key: 'manomano', name: 'ManoMano' },
+  { key: 'maisonsdumonde', name: 'Maisons du Monde' },
 ];
 
 /**
