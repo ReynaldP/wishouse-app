@@ -264,8 +264,11 @@ export function ProductForm({ open, onOpenChange, editingProductId }: ProductFor
                     placeholder="Alerte si..."
                     className="h-12 text-base"
                     {...register('target_price', {
-                      valueAsNumber: true,
-                      setValueAs: (v) => v === '' || v === null || isNaN(Number(v)) ? null : Number(v)
+                      setValueAs: (v) => {
+                        if (v === '' || v === null || v === undefined) return null;
+                        const num = Number(v);
+                        return isNaN(num) ? null : num;
+                      }
                     })}
                   />
                 </div>

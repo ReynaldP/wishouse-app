@@ -15,7 +15,7 @@ export const productSchema = z.object({
   pros: z.string().max(1000, 'Texte trop long'),
   cons: z.string().max(1000, 'Texte trop long'),
   tag_ids: z.array(z.string()).optional(),
-  target_price: z.number().min(0, 'Le prix cible doit être positif').nullable().optional(),
+  target_price: z.union([z.number().min(0, 'Le prix cible doit être positif'), z.null()]).optional(),
   price_alert_enabled: z.boolean().optional()
 });
 
