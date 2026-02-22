@@ -8,6 +8,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
+import { WishouseLogo } from '@/components/ui/WishouseLogo';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/useUIStore';
@@ -52,9 +53,7 @@ export function Sidebar() {
           {/* Header */}
           <div className="flex items-center justify-between h-14 px-4 border-b">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Home className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <WishouseLogo size={32} />
               <span className="font-bold text-lg">Wishouse</span>
             </div>
             <Button
